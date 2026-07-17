@@ -23,6 +23,14 @@ For Agorastore repositories, `{repository}` is the GitHub repository name, such 
 - Keep the artifact independent of an app build, secrets, API calls, or local development tooling. It must render as a static site on GitHub Pages.
 - Update the root `index.html` and README when adding a published artifact so it is discoverable. The root index is the practical visual catalog for every artifact, not a placeholder landing page.
 
+## Skills
+
+Producing an artifact and its companion PR description is a documented process, not an
+improvisation: the `artifactize` skill at `.agents/skills/artifactize/SKILL.md` defines both
+deliverables, the writing and redaction rules, and the uniform page skeleton every artifact must
+start from. Read it before creating or editing any artifact. Project skills are exposed through
+`.claude/skills`, which points to `.agents/skills`.
+
 ## Workflow
 
 This repository does not use pull requests. Commit directly on `main`: publishing an artifact is a single commit containing the new `artifacts/{repository}/pr-{number}/` directory plus the root `index.html` and README catalog updates. Pushing `main` triggers the GitHub Pages deployment.
