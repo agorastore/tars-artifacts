@@ -84,6 +84,8 @@ main{min-width:0;padding:0 clamp(24px,5vw,84px) 120px}
 .hero{padding:clamp(48px,9vh,110px) 0 0}
 .eyebrow{font-family:var(--mono);font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--faint)}
 .eyebrow em{color:var(--amber);font-style:normal}
+.eyebrow a{color:inherit;text-decoration:none;transition:color .15s ease}
+.eyebrow a:hover{color:var(--muted);text-decoration:underline;text-underline-offset:4px;text-decoration-color:var(--faint)}
 .hero h1{
   font-family:var(--serif);
   font-weight:600;
@@ -350,7 +352,7 @@ footer .fm{font-family:var(--mono);font-size:11.5px;letter-spacing:.04em}
 <div class="col">
 <!-- ================= HERO ================= -->
 <header class="hero">
-  <span class="eyebrow">tars-monorepo · <em>PR #145</em> · feat/data-list-presets</span>
+  <span class="eyebrow"><a href="https://github.com/agorastore/tars-monorepo">tars-monorepo</a> · <a href="https://github.com/agorastore/tars-monorepo/pull/145"><em>PR #145</em></a> · <a href="https://github.com/agorastore/tars-monorepo/tree/feat/data-list-presets">feat/data-list-presets</a></span>
   <h1>Saved views<span class="dot">.</span></h1>
   <p class="lede">Every DataList can now <b>capture, restore and share</b> its working state — filters, quick filters, search, sort and visible columns — as named views. <b>One schema block</b> turns it on; the engine owns the rest.</p>
 

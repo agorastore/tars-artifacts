@@ -122,6 +122,11 @@ H1        Short noun phrase + amber dot:  "Saved views."  "The server-state rewr
 lede      1–2 sentences, 2–4 <b> bolds landing on the thesis words. No third sentence.
 ```
 
+Each eyebrow segment is a **link** — repository → the GitHub repo, `PR #{n}` → the pull request,
+branch name → the branch tree — styled to look exactly like plain eyebrow text (color inherited,
+no underline) with a subtle hover (color lift + offset underline). The skeleton ships the markup
+and the `.eyebrow a` rules; keep all three hrefs real.
+
 **Stat strip — 4 to 6 stats, two families:**
 
 1. **Mechanical stats** (always first, in this order): files changed (animated `data-count`),
