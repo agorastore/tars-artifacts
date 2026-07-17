@@ -23,6 +23,10 @@ For Agorastore repositories, `{repository}` is the GitHub repository name, such 
 - Keep the artifact independent of an app build, secrets, API calls, or local development tooling. It must render as a static site on GitHub Pages.
 - Update the root `index.html` and README when adding a published artifact so it is discoverable. The root index is the practical visual catalog for every artifact, not a placeholder landing page.
 
+## Workflow
+
+This repository does not use pull requests. Commit directly on `main`: publishing an artifact is a single commit containing the new `artifacts/{repository}/pr-{number}/` directory plus the root `index.html` and README catalog updates. Pushing `main` triggers the GitHub Pages deployment.
+
 ## Verification
 
 Before committing, open the new `index.html` locally and verify that relative images, styles, anchors, and links work. The GitHub Actions workflow in `.github/workflows/deploy-pages.yml` is the only deployment mechanism; do not add another hosting provider configuration here.

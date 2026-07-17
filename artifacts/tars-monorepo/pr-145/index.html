@@ -1,0 +1,1069 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Saved Views — tars-monorepo PR #145</title>
+<meta name="description" content="DataList saved views: capture, restore and share a table's filters, search, sort and columns as named views. One schema block; the engine owns the rest.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500;1,9..144,600&family=Instrument+Sans:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg: oklch(16.5% .026 262);
+  --bg-deep: oklch(13.8% .024 262);
+  --surface: oklch(20% .028 262);
+  --surface-2: oklch(23% .03 262);
+  --line: oklch(29% .028 262);
+  --line-soft: oklch(24.5% .026 262);
+  --ink: oklch(93% .012 262);
+  --muted: oklch(70% .024 262);
+  --faint: oklch(54% .03 262);
+  --amber: #FDBF62;
+  --amber-deep: #D98F1F;
+  --blue: #7DA2F0;
+  --blue-deep: #2B4D93;
+  --green: #56C878;
+  --red: #E87878;
+  --c-key: #86A9F2;
+  --c-str: #F2C98A;
+  --c-com: #5E6C8F;
+  --c-num: #EFAB8A;
+  --c-fn: #EBDCAE;
+  --c-typ: #93CFC0;
+  --sans: 'Instrument Sans', system-ui, sans-serif;
+  --serif: 'Fraunces', Georgia, serif;
+  --mono: 'IBM Plex Mono', ui-monospace, monospace;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  background:var(--bg);
+  color:var(--ink);
+  font-family:var(--sans);
+  font-size:16.5px;
+  line-height:1.65;
+  -webkit-font-smoothing:antialiased;
+}
+::selection{background:oklch(45% .1 262);color:#fff}
+a{color:var(--blue);text-decoration:none}
+a:hover{text-decoration:underline;text-underline-offset:3px}
+
+/* ---------- progress bar ---------- */
+#progress{position:fixed;top:0;left:0;height:2px;width:0;background:var(--amber);z-index:99;transition:width .1s linear}
+
+/* ---------- layout ---------- */
+.shell{display:grid;grid-template-columns:288px minmax(0,1fr);max-width:1280px;margin:0 auto}
+.rail{position:sticky;top:0;height:100vh;overflow-y:auto;padding:clamp(24px,4vh,48px) 20px 48px 32px;border-right:1px solid var(--line-soft);scrollbar-width:thin;scrollbar-color:var(--line) transparent}
+main{min-width:0;padding:0 clamp(24px,5vw,84px) 120px}
+.col{max-width:800px}
+
+/* ---------- rail / sommaire ---------- */
+.rail .brand{font-family:var(--mono);font-size:11.5px;letter-spacing:.08em;color:var(--faint);text-transform:uppercase;display:block;margin-bottom:6px}
+.rail .brand b{color:var(--amber);font-weight:500}
+.rail h2{font-family:var(--serif);font-weight:600;font-size:19px;line-height:1.25;margin-bottom:26px;color:var(--ink)}
+.toc ol{list-style:none}
+.toc>ol>li{margin-bottom:2px}
+.toc a{display:flex;gap:10px;align-items:baseline;padding:5px 10px 5px 8px;border-radius:6px;color:var(--muted);font-size:13.5px;line-height:1.35;border-left:2px solid transparent}
+.toc a:hover{color:var(--ink);text-decoration:none;background:var(--surface)}
+.toc .num{font-family:var(--mono);font-size:10.5px;color:var(--faint);flex:0 0 20px;letter-spacing:.02em}
+.toc .sub{list-style:none;margin:1px 0 6px;overflow:hidden;max-height:0;transition:max-height .35s cubic-bezier(.22,1,.36,1)}
+.toc li.open .sub{max-height:400px}
+.toc .sub a{padding:3.5px 10px 3.5px 38px;font-size:12.5px;color:var(--faint)}
+.toc .sub a:hover{color:var(--ink)}
+.toc a.on{color:var(--amber);border-left-color:var(--amber);background:oklch(22% .03 262)}
+.toc .sub a.on{color:var(--amber);border-left-color:var(--amber)}
+
+/* mobile toc */
+#tocBtn{display:none;position:fixed;bottom:20px;right:20px;z-index:60;background:var(--surface-2);color:var(--ink);border:1px solid var(--line);border-radius:999px;font-family:var(--mono);font-size:12px;padding:11px 18px;cursor:pointer;letter-spacing:.06em}
+#tocOverlay{display:none;position:fixed;inset:0;background:oklch(12% .02 262 / .92);z-index:70;overflow-y:auto;padding:56px 24px}
+#tocOverlay.show{display:block}
+#tocClose{position:fixed;top:14px;right:18px;background:none;border:none;color:var(--muted);font-size:26px;cursor:pointer}
+
+/* ---------- hero ---------- */
+.hero{padding:clamp(48px,9vh,110px) 0 0}
+.eyebrow{font-family:var(--mono);font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--faint)}
+.eyebrow em{color:var(--amber);font-style:normal}
+.hero h1{
+  font-family:var(--serif);
+  font-weight:600;
+  font-size:clamp(42px,6.2vw,76px);
+  line-height:1.02;
+  letter-spacing:-.015em;
+  margin:18px 0 26px;
+}
+.hero h1 .dot{color:var(--amber)}
+.hero .lede{font-size:clamp(17px,1.6vw,20px);color:var(--muted);max-width:640px;line-height:1.6}
+.hero .lede b{color:var(--ink);font-weight:600}
+
+.statstrip{display:flex;flex-wrap:wrap;gap:0 44px;margin:52px 0 0;padding:26px 0 30px;border-top:1px solid var(--line-soft);border-bottom:1px solid var(--line-soft)}
+.stat{padding:6px 0}
+.stat .v{font-family:var(--serif);font-weight:600;font-size:clamp(28px,3vw,38px);line-height:1.1;font-variant-numeric:tabular-nums}
+.stat .v .plus{color:var(--green)}
+.stat .v .minus{color:var(--red)}
+.stat .l{font-size:12.5px;color:var(--faint);margin-top:3px;letter-spacing:.02em}
+
+/* ---------- chapters ---------- */
+.chapter{padding-top:clamp(72px,11vh,120px)}
+.ch-head{display:flex;align-items:baseline;gap:18px;border-bottom:1px solid var(--line);padding-bottom:16px;margin-bottom:14px}
+.ch-num{font-family:var(--mono);font-size:13px;color:var(--amber);letter-spacing:.08em}
+.ch-head h2{font-family:var(--serif);font-weight:600;font-size:clamp(28px,3.4vw,40px);letter-spacing:-.01em;line-height:1.1}
+.ch-lede{color:var(--muted);font-size:17px;max-width:660px;margin:14px 0 0}
+.chapter h3{font-family:var(--serif);font-weight:600;font-size:clamp(21px,2.2vw,25px);margin:56px 0 14px;letter-spacing:-.005em}
+.chapter h3 .hnum{font-family:var(--mono);font-size:12px;color:var(--faint);margin-right:10px;font-weight:400}
+.chapter p{margin:14px 0;max-width:680px;color:oklch(86% .015 262)}
+.chapter p b,.chapter li b{color:var(--ink)}
+.chapter ul{margin:14px 0 14px 4px;max-width:680px;list-style:none}
+.chapter ul li{padding:5px 0 5px 22px;position:relative;color:oklch(86% .015 262)}
+.chapter ul li::before{content:'';position:absolute;left:2px;top:.85em;width:9px;height:1.5px;background:var(--amber-deep)}
+.chapter code:not(pre code){font-family:var(--mono);font-size:.86em;background:var(--surface);border:1px solid var(--line-soft);border-radius:4px;padding:1.5px 6px;color:var(--c-str);white-space:nowrap}
+
+/* ---------- code panels ---------- */
+.code{background:var(--bg-deep);border:1px solid var(--line-soft);border-radius:10px;margin:22px 0;overflow:hidden}
+.code .bar{display:flex;align-items:center;justify-content:space-between;padding:9px 14px;border-bottom:1px solid var(--line-soft)}
+.code .path{font-family:var(--mono);font-size:11.5px;color:var(--faint);letter-spacing:.02em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.code .copy{background:none;border:1px solid var(--line-soft);color:var(--faint);font-family:var(--mono);font-size:10.5px;border-radius:5px;padding:3px 9px;cursor:pointer;letter-spacing:.05em;flex-shrink:0;margin-left:12px}
+.code .copy:hover{color:var(--ink);border-color:var(--line)}
+.code pre{padding:16px 18px;overflow-x:auto;font-family:var(--mono);font-size:13px;line-height:1.62;scrollbar-width:thin;scrollbar-color:var(--line) transparent}
+.code pre code{display:block;min-width:max-content}
+.tok-k{color:var(--c-key)}
+.tok-s{color:var(--c-str)}
+.tok-c{color:var(--c-com);font-style:italic}
+.tok-n{color:var(--c-num)}
+.tok-f{color:var(--c-fn)}
+.tok-t{color:var(--c-typ)}
+.tok-tag{color:var(--c-key)}
+.tok-attr{color:var(--c-typ)}
+
+/* before / after */
+.ba{display:grid;gap:14px;margin:22px 0}
+.ba .code{margin:0}
+.ba .tag{font-family:var(--mono);font-size:10px;letter-spacing:.14em;padding:2.5px 8px;border-radius:4px;margin-right:10px}
+.ba .before .tag{background:oklch(30% .07 20);color:var(--red)}
+.ba .after .tag{background:oklch(30% .07 155);color:var(--green)}
+.ba .before{border-color:oklch(32% .05 20)}
+.ba .after{border-color:oklch(32% .05 155)}
+
+/* ---------- tables ---------- */
+.tbl{width:100%;border-collapse:collapse;margin:22px 0;font-size:14px}
+.tbl th{font-family:var(--mono);font-size:10.5px;text-transform:uppercase;letter-spacing:.1em;color:var(--faint);text-align:left;font-weight:500;padding:8px 14px 8px 0;border-bottom:1px solid var(--line)}
+.tbl td{padding:10px 14px 10px 0;border-bottom:1px solid var(--line-soft);vertical-align:top;color:oklch(86% .015 262)}
+.tbl td:first-child{color:var(--ink);font-weight:500}
+.tbl code{font-family:var(--mono);font-size:.86em;color:var(--c-str);background:var(--surface);border:1px solid var(--line-soft);border-radius:4px;padding:1px 5px;white-space:nowrap}
+.tbl .ok{color:var(--green);font-weight:500}
+
+/* ---------- diagram ---------- */
+.diagram{margin:26px 0;display:flex;flex-direction:column;gap:0;max-width:640px}
+.dbox{background:var(--surface);border:1px solid var(--line);border-radius:9px;padding:14px 18px;position:relative}
+.dbox .dt{font-weight:600;font-size:14.5px}
+.dbox .dd{font-size:12.5px;color:var(--faint);margin-top:2px;font-family:var(--mono);letter-spacing:.01em}
+.dbox .own{position:absolute;top:13px;right:16px;font-family:var(--mono);font-size:10px;letter-spacing:.1em;color:var(--amber);text-transform:uppercase}
+.darrow{width:1.5px;height:26px;background:var(--line);margin-left:38px;position:relative}
+.darrow::after{content:'';position:absolute;bottom:0;left:-3.3px;border:4px solid transparent;border-top-color:var(--line)}
+
+/* ---------- callouts / pulls ---------- */
+.pull{border-left:2px solid var(--amber);padding:4px 0 4px 22px;margin:34px 0;font-family:var(--serif);font-size:clamp(19px,2vw,23px);line-height:1.45;font-weight:500;color:var(--ink);max-width:640px}
+.pull i{color:var(--amber);font-style:italic}
+.note{background:var(--surface);border:1px solid var(--line-soft);border-radius:9px;padding:14px 18px;margin:20px 0;font-size:14px;color:var(--muted);max-width:680px}
+.note b{color:var(--ink)}
+
+/* ---------- win cards ---------- */
+.wins{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:14px;margin:26px 0}
+.win{border:1px solid var(--line-soft);border-radius:10px;padding:18px 18px 16px;background:linear-gradient(180deg,var(--surface) 0%,transparent 140%)}
+.win .wk{font-family:var(--mono);font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--amber);margin-bottom:10px}
+.win .wt{font-family:var(--serif);font-size:19px;font-weight:600;line-height:1.25;margin-bottom:8px}
+.win p{font-size:13.5px;color:var(--muted);margin:0;line-height:1.55}
+
+/* ---------- demo frame ---------- */
+.demo{border:1px solid var(--line);border-radius:12px;background:var(--bg-deep);margin:26px 0;overflow:hidden}
+.demo .dhead{padding:11px 18px;border-bottom:1px solid var(--line-soft);display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+.demo .dhead .t{font-family:var(--mono);font-size:11.5px;letter-spacing:.08em;color:var(--faint);text-transform:uppercase}
+.demo .dhead .t em{color:var(--amber);font-style:normal}
+.demo .hint{font-size:12px;color:var(--faint);text-align:center;padding:10px 16px 14px}
+
+/* ========== light app mock ========== */
+.appmock{--m-bg:#f7f8fa;--m-card:#ffffff;--m-line:#e4e7ec;--m-ink:#1f2430;--m-muted:#667085;--m-faint:#98a2b3;--m-brand:#2f6fed;--m-brand-soft:rgba(47,111,237,.08);
+  background:var(--m-bg);color:var(--m-ink);font-size:13px;line-height:1.45;padding:18px;position:relative}
+.appmock *{font-family:var(--sans)}
+.appmock .m-panel{background:var(--m-card);border:1px solid var(--m-line);border-radius:10px;box-shadow:0 1px 2px rgba(16,24,40,.04)}
+.appmock .m-toolbar{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 14px;flex-wrap:wrap}
+.appmock .m-title{font-weight:600;font-size:14.5px}
+.appmock .m-controls{display:flex;align-items:center;gap:8px;position:relative}
+.appmock .m-iconbtn{width:30px;height:30px;border:1px solid var(--m-line);border-radius:7px;background:#fff;color:var(--m-muted);display:inline-flex;align-items:center;justify-content:center;cursor:pointer;position:relative;transition:border-color .15s,color .15s}
+.appmock .m-iconbtn:hover{border-color:var(--m-brand);color:var(--m-brand)}
+.appmock .m-iconbtn svg{width:15px;height:15px}
+.appmock .m-iconbtn .m-dot{position:absolute;top:-3px;right:-3px;width:8px;height:8px;border-radius:50%;background:var(--m-brand);box-shadow:0 0 0 2px #fff;display:none}
+.appmock .m-iconbtn .m-dot.show{display:block;animation:mpulse 1.8s ease-out infinite}
+@keyframes mpulse{0%{box-shadow:0 0 0 2px #fff,0 0 0 2px rgba(47,111,237,.45)}70%{box-shadow:0 0 0 2px #fff,0 0 0 7px rgba(47,111,237,0)}100%{box-shadow:0 0 0 2px #fff,0 0 0 2px rgba(47,111,237,0)}}
+.appmock .m-search{display:flex;align-items:center;gap:7px;border:1px solid var(--m-line);border-radius:7px;padding:5px 10px;color:var(--m-faint);min-width:170px;background:#fff}
+.appmock .m-search svg{width:13px;height:13px;flex-shrink:0}
+.appmock .m-search .q{color:var(--m-ink);font-weight:500}
+.appmock .m-search .q:empty::before{content:'Search invoices…';color:var(--m-faint);font-weight:400}
+.appmock .m-tags{display:flex;flex-wrap:wrap;gap:6px;padding:0 14px 12px;min-height:8px}
+.appmock .m-tag{display:inline-flex;align-items:center;gap:6px;background:#f2f4f7;border:1px solid var(--m-line);border-radius:999px;padding:2.5px 9px;font-size:12px;color:var(--m-ink)}
+.appmock .m-tag .x{cursor:pointer;color:var(--m-faint);font-size:13px;line-height:1;padding:0 1px}
+.appmock .m-tag .x:hover{color:#d92d20}
+.appmock .m-tag .swatch{width:7px;height:7px;border-radius:50%;display:inline-block}
+.appmock table{width:100%;border-collapse:collapse;font-size:12.5px}
+.appmock thead th{font-size:10.5px;text-transform:uppercase;letter-spacing:.06em;color:var(--m-faint);font-weight:600;text-align:left;padding:8px 14px;border-top:1px solid var(--m-line);border-bottom:1px solid var(--m-line);background:#fcfcfd;white-space:nowrap;cursor:default}
+.appmock thead th .arr{font-size:9px;margin-left:4px;color:var(--m-brand)}
+.appmock tbody td{padding:8px 14px;border-bottom:1px solid #f0f2f5;white-space:nowrap}
+.appmock tbody tr:last-child td{border-bottom:none}
+.appmock tbody tr{animation:mrow .3s ease-out both}
+@keyframes mrow{from{opacity:0}to{opacity:1}}
+.appmock .m-status{display:inline-flex;align-items:center;gap:6px;font-size:12px}
+.appmock .m-status i{width:7px;height:7px;border-radius:50%;display:inline-block}
+.appmock .m-amount{text-align:right;font-variant-numeric:tabular-nums;font-weight:500}
+.appmock .m-empty{padding:22px 14px;text-align:center;color:var(--m-faint);font-size:12.5px}
+.appmock .m-footrow{display:flex;justify-content:space-between;align-items:center;padding:9px 14px;border-top:1px solid var(--m-line);color:var(--m-faint);font-size:11.5px}
+
+/* popover */
+.appmock .m-pop{position:absolute;top:38px;right:0;width:min(360px,86vw);background:#fff;border:1px solid var(--m-line);border-radius:12px;box-shadow:0 12px 32px -8px rgba(16,24,40,.18),0 2px 6px rgba(16,24,40,.06);z-index:30;display:none;text-align:left}
+.appmock .m-pop.show{display:block;animation:mpop .18s cubic-bezier(.22,1,.36,1)}
+@keyframes mpop{from{opacity:0;transform:translateY(-5px) scale(.98)}to{opacity:1;transform:none}}
+.appmock .m-pop .p-head{display:flex;justify-content:space-between;align-items:center;padding:11px 14px;border-bottom:1px solid var(--m-line);font-weight:600;font-size:13px}
+.appmock .m-pop .p-body{padding:10px 12px;display:flex;flex-direction:column;gap:8px;max-height:330px;overflow-y:auto}
+.appmock .m-pop .p-search{display:flex;align-items:center;gap:7px;border:1px solid var(--m-line);border-radius:7px;padding:5px 10px;background:#fff}
+.appmock .m-pop .p-search svg{width:13px;height:13px;color:var(--m-faint);flex-shrink:0}
+.appmock .m-pop .p-search input{border:none;outline:none;font-size:12.5px;width:100%;color:var(--m-ink);background:transparent}
+.appmock .m-pop .p-foot{padding:10px 12px;border-top:1px solid var(--m-line)}
+.appmock .m-createbtn{width:100%;background:var(--m-brand);border:none;color:#fff;font-weight:600;font-size:12.5px;border-radius:7px;padding:8px 0;cursor:pointer}
+.appmock .m-createbtn:hover{background:#2159c8}
+.appmock .m-preset{border:1px solid var(--m-line);border-radius:9px;padding:10px 11px;cursor:pointer;display:flex;gap:9px;align-items:flex-start;transition:border-color .15s,background .15s;background:#fff}
+.appmock .m-preset:hover{border-color:var(--m-brand)}
+.appmock .m-preset.active{border-color:var(--m-brand);background:var(--m-brand-soft)}
+.appmock .m-preset .pk{flex-shrink:0;margin-top:1px;color:var(--m-faint)}
+.appmock .m-preset.active .pk{color:var(--m-brand)}
+.appmock .m-preset .pk svg{width:15px;height:15px}
+.appmock .m-preset .pbody{min-width:0;flex:1}
+.appmock .m-preset .pl{font-weight:600;font-size:12.5px;line-height:1.3}
+.appmock .m-preset .pmeta{display:flex;gap:12px;color:var(--m-faint);font-size:11px;margin-top:3px;flex-wrap:wrap}
+.appmock .m-preset .pmeta svg{width:11px;height:11px;vertical-align:-1.5px;margin-right:3px}
+.appmock .m-preset .ptags{display:flex;flex-wrap:wrap;gap:4px;margin-top:6px}
+.appmock .m-preset .ptag{background:#f2f4f7;border:1px solid var(--m-line);border-radius:999px;padding:1px 7px;font-size:10.5px;color:var(--m-muted)}
+.appmock .m-preset .pdel{flex-shrink:0;background:none;border:none;color:#cbd2dc;cursor:pointer;padding:2px;border-radius:5px;visibility:hidden}
+.appmock .m-preset:hover .pdel{visibility:visible}
+.appmock .m-preset .pdel:hover{color:#d92d20;background:#fee4e2}
+.appmock .m-preset .pdel svg{width:13px;height:13px}
+.appmock .p-empty{text-align:center;color:var(--m-faint);font-size:12px;padding:18px 8px}
+
+/* create modal */
+.appmock .m-modal-veil{position:absolute;inset:0;background:rgba(16,24,40,.32);z-index:40;display:none;align-items:center;justify-content:center;padding:18px}
+.appmock .m-modal-veil.show{display:flex;animation:mpop .18s cubic-bezier(.22,1,.36,1)}
+.appmock .m-modal{background:#fff;border-radius:12px;box-shadow:0 20px 48px -12px rgba(16,24,40,.3);width:min(380px,100%);text-align:left}
+.appmock .m-modal .mm-head{padding:13px 16px;border-bottom:1px solid var(--m-line);font-weight:600;font-size:13.5px}
+.appmock .m-modal .mm-body{padding:14px 16px;display:flex;flex-direction:column;gap:11px}
+.appmock .m-modal label{font-size:11.5px;font-weight:600;color:var(--m-muted);display:block;margin-bottom:4px}
+.appmock .m-modal input{width:100%;border:1px solid var(--m-line);border-radius:7px;padding:7px 10px;font-size:12.5px;outline:none;color:var(--m-ink)}
+.appmock .m-modal input:focus{border-color:var(--m-brand)}
+.appmock .m-modal .mm-preview{background:#f7f8fa;border:1px solid var(--m-line);border-radius:8px;padding:10px 11px}
+.appmock .m-modal .mm-preview .cap{font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--m-faint);margin-bottom:6px}
+.appmock .m-modal .mm-foot{display:flex;justify-content:flex-end;gap:8px;padding:12px 16px;border-top:1px solid var(--m-line)}
+.appmock .m-modal .mm-foot button{border-radius:7px;padding:7px 14px;font-size:12.5px;font-weight:600;cursor:pointer}
+.appmock .m-modal .mm-cancel{background:#fff;border:1px solid var(--m-line);color:var(--m-muted)}
+.appmock .m-modal .mm-save{background:var(--m-brand);border:1px solid var(--m-brand);color:#fff}
+
+/* state readout under mock */
+.statebar{font-family:var(--mono);font-size:11.5px;color:var(--faint);padding:12px 18px;border-top:1px solid var(--line-soft);line-height:1.9;word-break:break-word}
+.statebar b{color:var(--amber);font-weight:500}
+.statebar .k{color:var(--c-key)}
+.statebar .v{color:var(--c-str)}
+
+/* ---------- reveal ---------- */
+.rv{opacity:0;transform:translateY(14px);transition:opacity .7s cubic-bezier(.22,1,.36,1),transform .7s cubic-bezier(.22,1,.36,1)}
+.rv.in{opacity:1;transform:none}
+@media (prefers-reduced-motion:reduce){
+  .rv{opacity:1;transform:none;transition:none}
+  html{scroll-behavior:auto}
+}
+
+/* ---------- footer ---------- */
+footer{border-top:1px solid var(--line);margin-top:110px;padding:34px 0 8px;display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap;font-size:13px;color:var(--faint)}
+footer .fm{font-family:var(--mono);font-size:11.5px;letter-spacing:.04em}
+
+@media (max-width:980px){
+  .shell{grid-template-columns:1fr}
+  .rail{display:none}
+  #tocBtn{display:block}
+}
+@media (min-width:700px){
+  .ba.cols{grid-template-columns:1fr 1fr}
+}
+</style>
+</head>
+<body>
+<div id="progress"></div>
+<button id="tocBtn">Sommaire</button>
+<div id="tocOverlay"><button id="tocClose">×</button><div id="tocMobile"></div></div>
+<div class="shell">
+
+<nav class="rail">
+  <span class="brand">tars-monorepo · <b>PR&nbsp;#145</b></span>
+  <h2>DataList saved views</h2>
+  <div class="toc" id="toc">
+  <ol>
+    <li><a href="#why"><span class="num">01</span>Why</a>
+      <ol class="sub">
+        <li><a href="#why-ritual">The operator ritual</a></li>
+        <li><a href="#why-captures">What a view captures</a></li>
+        <li><a href="#why-demo">Try it: the selector</a></li>
+      </ol>
+    </li>
+    <li><a href="#design"><span class="num">02</span>The design</a>
+      <ol class="sub">
+        <li><a href="#design-serverstate">Presets are server state</a></li>
+        <li><a href="#design-split">The ownership split</a></li>
+        <li><a href="#design-types">Typed past the minimal shape</a></li>
+      </ol>
+    </li>
+    <li><a href="#links"><span class="num">03</span>Shareable by construction</a>
+      <ol class="sub">
+        <li><a href="#links-oneshot">?preset=&lt;id&gt;, one shot</a></li>
+        <li><a href="#links-demo">Try it: open a shared link</a></li>
+      </ol>
+    </li>
+    <li><a href="#decoupling"><span class="num">04</span>The decoupling</a>
+      <ol class="sub">
+        <li><a href="#dec-before">Labels through form state</a></li>
+        <li><a href="#dec-queries">Filter options are queries</a></li>
+        <li><a href="#dec-resolver">One resolver everywhere</a></li>
+      </ol>
+    </li>
+    <li><a href="#consume"><span class="num">05</span>Consuming it</a>
+      <ol class="sub">
+        <li><a href="#consume-schema">The schema block</a></li>
+        <li><a href="#consume-create">The creation modal</a></li>
+        <li><a href="#consume-free">What every table gets free</a></li>
+      </ol>
+    </li>
+    <li><a href="#proof"><span class="num">06</span>Scope &amp; proof</a>
+      <ol class="sub">
+        <li><a href="#proof-scope">Deliberate scope</a></li>
+        <li><a href="#proof-validation">Validation</a></li>
+      </ol>
+    </li>
+  </ol>
+  </div>
+</nav>
+
+<main>
+<div class="col">
+<!-- ================= HERO ================= -->
+<header class="hero">
+  <span class="eyebrow">tars-monorepo · <em>PR #145</em> · feat/data-list-presets</span>
+  <h1>Saved views<span class="dot">.</span></h1>
+  <p class="lede">Every DataList can now <b>capture, restore and share</b> its working state — filters, quick filters, search, sort and visible columns — as named views. <b>One schema block</b> turns it on; the engine owns the rest.</p>
+
+  <div class="statstrip">
+    <div class="stat"><div class="v" data-count="59">0</div><div class="l">files changed</div></div>
+    <div class="stat"><div class="v"><span class="plus">+1,718</span> <span class="minus">−431</span></div><div class="l">lines</div></div>
+    <div class="stat"><div class="v" data-count="13">0</div><div class="l">granular commits</div></div>
+    <div class="stat"><div class="v">1</div><div class="l">schema block to enable</div></div>
+    <div class="stat"><div class="v">0</div><div class="l">render callbacks to maintain</div></div>
+  </div>
+</header>
+
+<!-- ================= 01 WHY ================= -->
+<section class="chapter" id="why">
+  <div class="ch-head"><span class="ch-num">01</span><h2>Why</h2></div>
+  <p class="ch-lede">Operators live in our tables — and rebuild the same working setups all day, every day.</p>
+
+  <h3 id="why-ritual"><span class="hnum">1.1</span>The operator ritual</h3>
+  <p>Watch anyone work a dense back-office table and the pattern is unmistakable: status filter on, sort by issue date, hide the four columns they never read — then do the exact same dance after lunch, and again tomorrow morning. DataList already persists its state in the URL, but that state is <b>ephemeral</b>: leave the page with different filters and the ritual starts over.</p>
+  <p>Worse, a working setup was <b>not transferable</b>. There was no way to hand a colleague "the table exactly as I'm looking at it" — you described your filters over Slack and hoped they clicked the same six things.</p>
+
+  <div class="pull">A view an operator rebuilds three times a day is not UI state. It's a <i>work object</i> — it deserves a name, a home, and a link.</div>
+
+  <h3 id="why-captures"><span class="hnum">1.2</span>What a view captures</h3>
+  <p>A saved view snapshots the five dimensions that define "how I look at this table":</p>
+
+  <div class="code"><div class="bar"><span class="path">packages/shared-ui/src/runtime/lib/data-list/types/presets.ts</span><button class="copy">COPY</button></div>
+<pre><code>export interface DataListPresetState {
+  filters: GenericObject
+  quickFilters: GenericObject
+  searchQuery: string
+  sort: { key: string; dir: SortOrder } | null
+  visibleColumns: string[]
+}
+
+export interface DataListPreset {
+  id: string
+  label: string
+  state: DataListPresetState
+}</code></pre></div>
+
+  <p>Column capture is deliberately careful: only <b>visible leaf columns</b> are recorded — never internal group keys — and required columns survive application no matter what a stale preset says. Active detection compares <b>structural equality</b> with order-insensitive columns, so the selector always knows whether what you're looking at <i>is</i> a saved view, without storing any extra flag.</p>
+
+  <h3 id="why-demo"><span class="hnum">1.3</span>Try it: the selector</h3>
+  <p>This is a faithful recreation of the shipped UI — the playground's invoice table (<code>/dev/table</code>) with its three seeded views. Open the bookmark control, switch views, watch the table obey. Remove a filter tag and notice the active badge drop — structural equality at work. Save your own view; delete it; try the search.</p>
+
+  <div class="demo rv">
+    <div class="dhead"><span class="t">Recreation · <em>PresetControl</em> + DataList header · shared-ui playground</span></div>
+    <div class="appmock" id="mock1">
+      <div class="m-panel">
+        <div class="m-toolbar">
+          <span class="m-title">Invoice operations</span>
+          <div class="m-controls">
+            <span class="m-search"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="9" cy="9" r="6"/><path d="m14 14 4 4"/></svg><span class="q" id="m1-search"></span></span>
+            <button class="m-iconbtn" id="m1-bookmark" aria-label="Saved views" title="Views">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 4h12a1 1 0 0 1 1 1v16l-7-4.5L5 21V5a1 1 0 0 1 1-1Z"/><path d="M9 4v7l3-2 3 2V4"/></svg>
+              <span class="m-dot" id="m1-dot"></span>
+            </button>
+            <button class="m-iconbtn" title="Filters"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 6h16M7 12h10M10 18h4"/></svg></button>
+            <button class="m-iconbtn" title="Columns"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="5" width="16" height="14" rx="1.5"/><path d="M10 5v14M15 5v14"/></svg></button>
+            <button class="m-iconbtn" title="Refresh"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M20 11a8 8 0 1 0-2.3 6.3"/><path d="M20 5v6h-6"/></svg></button>
+
+            <div class="m-pop" id="m1-pop" role="dialog" aria-label="Saved views">
+              <div class="p-head"><span>Saved views</span></div>
+              <div class="p-body">
+                <div class="p-search"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="9" cy="9" r="6"/><path d="m14 14 4 4"/></svg><input id="m1-psearch" type="text" placeholder="Search saved views…"></div>
+                <div id="m1-plist"></div>
+              </div>
+              <div class="p-foot"><button class="m-createbtn" id="m1-create">＋ &nbsp;Save current view</button></div>
+            </div>
+          </div>
+        </div>
+        <div class="m-tags" id="m1-tags"></div>
+        <div style="overflow-x:auto"><table>
+          <thead><tr id="m1-thead"></tr></thead>
+          <tbody id="m1-tbody"></tbody>
+        </table></div>
+        <div class="m-footrow"><span id="m1-count"></span><span>page 1 / 1</span></div>
+      </div>
+
+      <div class="m-modal-veil" id="m1-veil">
+        <div class="m-modal">
+          <div class="mm-head">Save current view</div>
+          <div class="mm-body">
+            <div><label for="m1-name">View name</label><input id="m1-name" type="text" placeholder="For example, overdue follow-up" maxlength="80"></div>
+            <div class="mm-preview"><div class="cap">Saved setup</div><div id="m1-mpreview"></div></div>
+          </div>
+          <div class="mm-foot"><button class="mm-cancel" id="m1-cancel">Cancel</button><button class="mm-save" id="m1-save">Save view</button></div>
+        </div>
+      </div>
+    </div>
+    <div class="statebar" id="m1-state"></div>
+    <div class="hint">Everything above is real logic from the feature, re-implemented in miniature: structural-equality active detection, order-insensitive column capture, diacritic-insensitive search, app-owned creation modal with the shared state preview.</div>
+  </div>
+</section>
+<!-- ================= 02 DESIGN ================= -->
+<section class="chapter" id="design">
+  <div class="ch-head"><span class="ch-num">02</span><h2>The design</h2></div>
+  <p class="ch-lede">Three decisions shape the whole feature: presets live in the Query cache, the engine and the app split ownership along a strict line, and types flow past the minimal shape.</p>
+
+  <h3 id="design-serverstate"><span class="hnum">2.1</span>Presets are server state</h3>
+  <p>The obvious implementation — a reactive array somewhere in the table engine — was rejected on day one. Saved views belong to a user and an organisation; they are <b>server state</b>, and this codebase already has exactly one owner for server state: TanStack Query (<a href="https://agorastore.github.io/tars-artifacts/artifacts/tars-monorepo/pr-137/">PR #137</a>).</p>
+  <p>So <code>presets.query()</code> returns canonical <code>queryOptions</code>, and DataList mounts a real Query observer on it. After a successful <code>create</code> or <code>delete</code>, the engine writes back through <b>typed cache upserts and removals</b> — no duplicate local list, no synchronization watcher, no "refresh the views" call:</p>
+
+  <div class="code"><div class="bar"><span class="path">packages/shared-ui/src/runtime/lib/data-list/composables/useTablePresets.ts</span><button class="copy">COPY</button></div>
+<pre><code>const preset = await handler(deepClone(currentState.value))
+if (!preset) return  // app cancelled its own modal — nothing happened
+
+query.setData((current) =&gt; upsertDataListPreset(current, preset))</code></pre></div>
+
+  <p>Everything Query gives every other feature comes along free: caching between tables that share a key, background revalidation, request dedup, devtools visibility, and controller invalidation once views are persisted behind the generated client.</p>
+
+  <h3 id="design-split"><span class="hnum">2.2</span>The ownership split</h3>
+  <p>The API is four callbacks — one required, three optional. The line between them is the whole design:</p>
+
+  <div class="diagram">
+    <div class="dbox"><span class="own">engine owns</span><div class="dt">Capture · apply · detect · render</div><div class="dd">state snapshot · structural-equality active detection · selector UI · per-preset loading · Query cache sync</div></div>
+    <div class="darrow"></div>
+    <div class="dbox"><span class="own">app owns</span><div class="dt">Persist · confirm · authorize</div><div class="dd">presets.query() · create(state) → preset | null · delete(preset) → false cancels · canDelete(preset)</div></div>
+  </div>
+
+  <table class="tbl">
+    <thead><tr><th>Callback</th><th>Contract</th><th>Why it lives in the app</th></tr></thead>
+    <tbody>
+      <tr><td><code>query()</code></td><td>Canonical <code>queryOptions</code> returning presets</td><td>Persistence is a product decision — API, localStorage, anything</td></tr>
+      <tr><td><code>create(state)</code></td><td>Async; may open any UI; resolves the created preset, or <code>null</code> when cancelled</td><td>Naming UX, validation, ownership rules differ per app</td></tr>
+      <tr><td><code>delete(preset)</code></td><td>Async; <code>false</code> cancels; resolves after persistence succeeds</td><td>Confirmation dialogs and notifications are app furniture</td></tr>
+      <tr><td><code>canDelete(preset)</code></td><td>Sync; gates the affordance per preset</td><td>Rights &amp; ownership are runtime facts the engine can't know</td></tr>
+    </tbody>
+  </table>
+
+  <p>Just as deliberate is what the config <b>does not have</b>: no schema key, no state serializer, no rendering callbacks. The selector, the previews, the active detection, the loading states — none of it is configurable, so none of it can drift between tables. Every DataList in every app gets the identical, polished affordance, and a table adopts the feature without shipping a single component.</p>
+
+  <div class="note"><b>Guard rails included.</b> Without <code>delete</code>, no delete affordance renders at all. Without <code>canDelete</code>, every preset is eligible. And <code>canDelete</code> only controls the button — the skill docs are explicit that the delete handler must still enforce authorization server-side.</div>
+
+  <h3 id="design-types"><span class="hnum">2.3</span>Typed past the minimal shape</h3>
+  <p>A preset only <i>needs</i> <code>{ id, label, state }</code> — but real presets carry metadata: an owner, a scope, permissions. The naive typing would widen everything to the minimal shape and force casts in every callback. Instead, a <code>Preset</code> generic is threaded through <code>defineTableSchema</code>'s overloads, and <code>defineDataListPresets</code> pins the query's <b>concrete</b> item type so it flows into every lifecycle callback:</p>
+
+  <div class="code"><div class="bar"><span class="path">the query's concrete type reaches every callback — no casts, no widening</span><button class="copy">COPY</button></div>
+<pre><code>interface OrgPreset extends DataListPreset {
+  isOwner: boolean
+  scope: 'personal' | 'organisation'
+}
+
+presets: defineDataListPresets({
+  query: () =&gt; $client.tableViews.list.queryOptions({ input: { tableKey } }),
+  //           ^ resolves OrgPreset[]
+
+  canDelete: (preset) =&gt; preset.isOwner,
+  //          ^ OrgPreset — `isOwner` is right there, fully typed
+
+  delete: (preset) =&gt; confirmThenDelete(preset.scope, preset.id),
+})</code></pre></div>
+
+  <p>This is covered by dedicated type-level tests: <code>expectTypeOf</code> assertions guarantee that query-owned properties survive into <code>create</code>, <code>delete</code> and <code>canDelete</code>, and that the config never degrades to the minimal shape.</p>
+</section>
+
+<!-- ================= 03 DEEP LINKS ================= -->
+<section class="chapter" id="links">
+  <div class="ch-head"><span class="ch-num">03</span><h2>Shareable by construction</h2></div>
+  <p class="ch-lede">"Look at the table the way I see it" is now a URL.</p>
+
+  <h3 id="links-oneshot"><span class="hnum">3.1</span>?preset=&lt;id&gt;, one shot</h3>
+  <p>A preset-enabled DataList accepts a <code>?preset=&lt;id&gt;</code> deep link. The semantics are deliberately <b>one-shot</b>: on initialization the table waits for the preset query to settle, applies the matching state if the id exists, then consumes the parameter through the shared route-query manager — leaving the URL clean and the table free to diverge.</p>
+  <ul>
+    <li><b>Waits, doesn't race.</b> If presets are still loading, application is deferred until the query settles — a link never silently loses because the network was slow.</li>
+    <li><b>Consumes only its own key.</b> Filters, sort and pagination already in the URL survive untouched; only <code>preset</code> is removed.</li>
+    <li><b>Fails closed.</b> An unknown id is consumed without changing table state — a deleted view degrades to the default table, not an error.</li>
+    <li><b>Composes with the ecosystem.</b> Anything that can build a URL — a notification email, a dashboard tile, a Slack message — can now open a table pre-configured.</li>
+  </ul>
+
+  <h3 id="links-demo"><span class="hnum">3.2</span>Try it: open a shared link</h3>
+  <p>Replay what happens when a colleague opens your link while the preset query is still in flight:</p>
+
+  <div class="demo rv">
+    <div class="dhead"><span class="t">Simulation · <em>?preset=follow-up-overdue</em> · one-shot consumption</span></div>
+    <div class="linkdemo">
+      <div class="urlbar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="13" height="13"><rect x="5" y="10" width="14" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg><span id="ld-url">app.agorastore.fr/seller/invoices<b id="ld-qs">?preset=follow-up-overdue</b></span></div>
+      <div class="ld-console" id="ld-console"></div>
+      <div class="ld-actions"><button id="ld-run">Open the link</button><button id="ld-reset">Reset</button></div>
+    </div>
+  </div>
+</section>
+<!-- ================= 04 DECOUPLING ================= -->
+<section class="chapter" id="decoupling">
+  <div class="ch-head"><span class="ch-num">04</span><h2>The decoupling</h2></div>
+  <p class="ch-lede">The selector must answer "what does this view contain?" with human labels — outside any mounted filter form. That forced a fix on a long-standing coupling, and it's the part of this PR that pays for itself beyond presets.</p>
+
+  <h3 id="dec-before"><span class="hnum">4.1</span>Before: labels through form state</h3>
+  <p>Filter tags — the little chips that say <i>Status: Overdue</i> instead of <i>status: ["overdue"]</i> — used to resolve their display labels by reaching into the <b>mounted filter form</b> through <code>$formApi.getFieldApi(...)</code>. Preview rendering was welded to live form state: it only worked inside a mounted DataList, options followed the form's lifecycle instead of a cache, and rendering a preset's contents in a popover or a modal was structurally impossible.</p>
+
+  <div class="ba cols">
+    <div class="code before"><div class="bar"><span class="path"><span class="tag">BEFORE</span>preview coupled to a mounted form</span></div>
+<pre><code>// display contract drags FieldApi along
+render?: (value: any, api: FieldApi) =&gt; VNodeChild
+
+// tag resolves labels via live form state
+const fieldApi = $formApi.getFieldApi({
+  fieldKey: key,
+  instanceId: `${tableKey}::filters`,
+})
+const options = fieldApi?.getOptions?.() ?? []</code></pre></div>
+    <div class="code after"><div class="bar"><span class="path"><span class="tag">AFTER</span>value-only, resolved from the cache</span></div>
+<pre><code>// display contract takes the value. Period.
+render?: (value: any) =&gt; VNodeChild
+
+// options resolved from the schema itself,
+// through the app QueryClient
+const { options, pending } =
+  useFilterOptions(computed(() =&gt; filter))</code></pre></div>
+  </div>
+
+  <h3 id="dec-queries"><span class="hnum">4.2</span>Filter options are queries</h3>
+  <p>Table filter options that need remote data now expose <b>canonical TanStack <code>queryOptions</code></b> — the exact contract form fields adopted in PR #137, sharing the same <code>isFieldOptionQuery</code> detection and <code>buildOption</code> mapping. One migration in customer-front shows the whole move:</p>
+
+  <div class="ba cols">
+    <div class="code before"><div class="bar"><span class="path"><span class="tag">BEFORE</span>one-shot promise, refetched per mount</span></div>
+<pre><code>options: () =&gt;
+  $client.manufacturers.list.call()
+    .then((manufacturers) =&gt;
+      manufacturers.map(toOption).sort(byLabel),
+    )</code></pre></div>
+    <div class="code after"><div class="bar"><span class="path"><span class="tag">AFTER</span>cached, deduplicated, invalidated with its controller</span></div>
+<pre><code>options: () =&gt;
+  $client.manufacturers.list.queryOptions({
+    select: (manufacturers) =&gt;
+      manufacturers.map(toOption).sort(byLabel),
+  })</code></pre></div>
+  </div>
+
+  <p>The new <code>useFilterOptions</code> composable resolves every source shape a filter can declare — static arrays stay synchronous, zero-argument functions may return arrays, promises or query options — and mounts a Query observer only when there's actually a query, with <code>keepPreviousData</code> so revalidation never blanks a label.</p>
+
+  <h3 id="dec-resolver"><span class="hnum">4.3</span>One resolver everywhere</h3>
+  <p>Live filter tags, the preset selector's previews, and the standalone <code>DataListPresetStatePreview</code> component all render through the <b>same</b> resolver. The practical consequences:</p>
+  <div class="wins">
+    <div class="win"><div class="wk">Anywhere</div><div class="wt">Previews without a table</div><p><code>DataListPresetStatePreview</code> takes a schema and a state — it renders sort, column count, search and resolved filter tags in any popover or app modal, no mounted DataList required.</p></div>
+    <div class="win"><div class="wk">Warm cache</div><div class="wt">Labels never flicker</div><p>Cached labels render instantly while the query revalidates in the background. Only a genuinely cold query shows a tag skeleton — covered by its own test.</p></div>
+    <div class="win"><div class="wk">Shared</div><div class="wt">One key, one fetch</div><p>A filter panel, its tags, a preset preview and a form field sharing a generated key share one cache entry — request dedup across surfaces, free.</p></div>
+    <div class="win"><div class="wk">Simpler</div><div class="wt">Value-only contract</div><p><code>preview.render(value)</code> and <code>preview.tagProps(value)</code> lost their <code>FieldApi</code> parameter — previews are pure functions of the stored value now.</p></div>
+  </div>
+
+  <div class="pull">Display used to be a side effect of a mounted form. Now it's a pure function of <i>schema + value + cache</i> — which is why a preset can describe itself anywhere.</div>
+</section>
+
+<!-- ================= 05 CONSUMING ================= -->
+<section class="chapter" id="consume">
+  <div class="ch-head"><span class="ch-num">05</span><h2>Consuming it</h2></div>
+  <p class="ch-lede">The playground page is the reference implementation: everything below ships in this PR and runs at <code>/dev/table</code>.</p>
+
+  <h3 id="consume-schema"><span class="hnum">5.1</span>The schema block</h3>
+  <p>The entire integration surface, on the playground's invoice table — a Query source over localStorage, an app-owned creation modal, a confirm dialog for deletion, and <code>canDelete</code> protecting a shared view:</p>
+
+  <div class="code"><div class="bar"><span class="path">packages/shared-ui/playground/app/pages/dev/table.vue</span><button class="copy">COPY</button></div>
+<pre><code>const schema = defineTableSchema({
+  // …filters, columns, source, actions — unchanged…
+
+  presets: {
+    query: () =&gt;
+      queryOptions({
+        queryKey: ['playground', 'data-list-presets', 'invoice-groups'],
+        queryFn: async () =&gt; structuredClone(toRaw(savedPresets.value)),
+      }),
+    create: requestPresetCreation,
+    delete: requestPresetDeletion,
+    canDelete: (preset) =&gt; preset.id !== 'month-end-review',
+  },
+})</code></pre></div>
+
+  <p>That's it. The bookmark control appears in the table header automatically (the standard <code>controls</code> opt-out applies if a surface shouldn't have it).</p>
+
+  <h3 id="consume-create"><span class="hnum">5.2</span>The creation modal</h3>
+  <p>Creation UI belongs to the app — so the playground builds its modal with the existing form engine, and drops the shared preview component in to show exactly what's being saved:</p>
+
+  <div class="code"><div class="bar"><span class="path">packages/shared-ui/playground/app/pages/dev/table.vue</span><button class="copy">COPY</button></div>
+<pre><code>async function requestPresetCreation(state: DataListPresetState) {
+  const result = await $formApi.createForm(defineFormSchema({
+    title: 'Save current view',
+    layout: { displayMode: 'modal', gridSize: 1 },
+    fields: [
+      { key: 'label', label: 'View name', type: 'text', required: true },
+      { key: 'preview', type: 'custom-component', omit: true,
+        render: () =&gt; &lt;DataListPresetStatePreview state={state} schema={schema} /&gt; },
+    ],
+  }))
+  if (!result.isCompleted) return null   // cancel = nothing happened
+
+  const preset = { id: crypto.randomUUID(), label: result.formData.label, state }
+  savedPresets.value = [...savedPresets.value, preset]
+  return preset
+}</code></pre></div>
+
+  <h3 id="consume-free"><span class="hnum">5.3</span>What every table gets free</h3>
+  <ul>
+    <li><b>The selector</b> — bookmark trigger with an active-view badge, per-view state previews, per-preset delete with loading state, empty and no-result states.</li>
+    <li><b>Search that respects language</b> — diacritic-insensitive matching (<i>reunion</i> finds <i>Réunion</i>) and locale-aware <code>Intl.Collator</code> ordering, derived in the UI so persistence order stays an API concern.</li>
+    <li><b>Active detection</b> — structural equality against current state; modify anything and the badge drops, restore it by hand and it lights back up.</li>
+    <li><b>Accessibility</b> — keyboard operable cards, <code>aria-pressed</code>, focus rings, testids on every affordance.</li>
+    <li><b>Five locales</b> — 13 new strings each in de, en, fr, nl, pl.</li>
+    <li><b>Docs as contract</b> — the <code>tars-shared-ui-table</code> skill and a new schema-anatomy reference document the pattern future tables are expected to follow.</li>
+  </ul>
+</section>
+<!-- ================= 06 SCOPE & PROOF ================= -->
+<section class="chapter" id="proof">
+  <div class="ch-head"><span class="ch-num">06</span><h2>Scope &amp; proof</h2></div>
+  <p class="ch-lede">Small surface, sharp edges — and honest about what ships now versus next.</p>
+
+  <h3 id="proof-scope"><span class="hnum">6.1</span>Deliberate scope</h3>
+  <ul>
+    <li><b>The engine ships; adoption follows.</b> A customer-front prototype (saved item views, persisted behind the API) was built to validate the callbacks end-to-end — then pulled from this PR. App adoption lands separately, with real persistence and its own review.</li>
+    <li><b>No configuration surface beyond the four callbacks.</b> No schema keys, no serializers, no render hooks. If a table needs a different selector, that's a conversation, not a config flag.</li>
+    <li><b>Order is an API concern.</b> The selector displays locale-aware alphabetical order without rewriting Query data — persistence keeps whatever order it wants.</li>
+    <li><b>Riding along:</b> directive-safe overlay roots for <code>PersistantDrawer</code>, and a Sentry router instrumentation fix.</li>
+  </ul>
+
+  <h3 id="proof-validation"><span class="hnum">6.2</span>Validation</h3>
+  <table class="tbl">
+    <thead><tr><th>Surface</th><th>Covered</th></tr></thead>
+    <tbody>
+      <tr><td>Preset capture</td><td>Visible leaf columns only, no internal group keys; required columns preserved on application</td></tr>
+      <tr><td>Cache lifecycle</td><td>Upsert replaces matching ids without mutating; removal is non-destructive</td></tr>
+      <tr><td>Type flow</td><td><code>expectTypeOf</code>: query-owned metadata reaches <code>create</code> / <code>delete</code> / <code>canDelete</code> unwidened</td></tr>
+      <tr><td>Schema resolution</td><td>View templates resolve for previews without mutating the owning schema</td></tr>
+      <tr><td>Form-free previews</td><td>Option labels and custom renderers resolve from value + schema alone</td></tr>
+      <tr><td>Revalidation UX</td><td>Cached labels render immediately while the option query revalidates</td></tr>
+      <tr><td class="ok">Plus</td><td>Lint, typecheck, shared-ui build, playground exercised end-to-end in the browser</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<footer>
+  <span>DataList saved views · tars-monorepo <a href="https://github.com/agorastore/tars-monorepo/pull/145">PR #145</a> · feat/data-list-presets · July 2026</span>
+  <span class="fm">agorastore · TARS</span>
+</footer>
+
+</div>
+</main>
+</div>
+
+<style>
+/* ---------- link demo ---------- */
+.linkdemo{padding:18px 20px 6px}
+.urlbar{display:flex;align-items:center;gap:9px;background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:8px 16px;font-family:var(--mono);font-size:12.5px;color:var(--muted);overflow-x:auto;white-space:nowrap}
+.urlbar svg{flex-shrink:0;color:var(--green)}
+.urlbar b{color:var(--amber);font-weight:500;transition:opacity .6s}
+.urlbar b.gone{opacity:0}
+.ld-console{font-family:var(--mono);font-size:12px;line-height:2;min-height:150px;padding:14px 4px 4px}
+.ld-console .cl{opacity:0;transform:translateY(4px);animation:clin .35s cubic-bezier(.22,1,.36,1) forwards;white-space:pre-wrap;word-break:break-word}
+@keyframes clin{to{opacity:1;transform:none}}
+.ld-console .t0{color:var(--faint)}
+.ld-console .dim{color:var(--c-com)}
+.ld-console .ok{color:var(--green)}
+.ld-console .warmc{color:var(--amber)}
+.ld-console .blue{color:var(--blue)}
+.ld-actions{display:flex;gap:10px;justify-content:center;padding:8px 0 14px}
+.ld-actions button{font-family:var(--mono);font-size:12px;padding:8px 16px;border-radius:7px;cursor:pointer;letter-spacing:.03em}
+#ld-run{background:var(--amber);border:1px solid var(--amber);color:#1a1206;font-weight:500}
+#ld-run:hover{background:var(--amber-deep);border-color:var(--amber-deep)}
+#ld-reset{background:none;border:1px solid var(--line);color:var(--muted)}
+#ld-reset:hover{color:var(--ink)}
+</style>
+
+<script>
+(function(){
+'use strict'
+
+/* ---------- syntax highlighting ---------- */
+var TS_RE = /(\/\/[^\n]*|\/\*[\s\S]*?\*\/)|(`(?:\\.|[^`\\])*`|'(?:\\.|[^'\\\n])*'|"(?:\\.|[^"\\\n])*")|\b(const|let|var|function|return|await|async|import|from|export|type|interface|extends|new|if|else|throw|for|of|in|typeof|keyof|readonly|as|satisfies|default|class|void|null|undefined|true|false|this)\b|\b(\d[\d_]*(?:\.\d+)?)\b|([A-Za-z_$][\w$]*)(?=\s*\()|\b([A-Z][A-Za-z0-9_]+)\b/g
+var CLASSES = ['tok-c','tok-s','tok-k','tok-n','tok-f','tok-t']
+function esc(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+function highlightTS(src){
+  var out='', last=0, m
+  TS_RE.lastIndex=0
+  while((m=TS_RE.exec(src))){
+    out+=esc(src.slice(last,m.index))
+    var cls=null
+    for(var g=1;g<=6;g++) if(m[g]!==undefined){cls=CLASSES[g-1];break}
+    out+='<span class="'+cls+'">'+esc(m[0])+'</span>'
+    last=m.index+m[0].length
+  }
+  return out+esc(src.slice(last))
+}
+document.querySelectorAll('pre code').forEach(function(block){
+  block.innerHTML=highlightTS(block.textContent)
+})
+
+/* ---------- copy buttons ---------- */
+document.querySelectorAll('.code .copy').forEach(function(btn){
+  btn.addEventListener('click',function(){
+    var pre=btn.closest('.code').querySelector('pre code')
+    navigator.clipboard.writeText(pre.textContent).then(function(){
+      btn.textContent='COPIED'
+      setTimeout(function(){btn.textContent='COPY'},1400)
+    })
+  })
+})
+
+/* ---------- progress bar ---------- */
+var progress=document.getElementById('progress')
+function onScroll(){
+  var h=document.documentElement
+  var p=h.scrollTop/(h.scrollHeight-h.clientHeight)
+  progress.style.width=(p*100).toFixed(2)+'%'
+}
+addEventListener('scroll',onScroll,{passive:true});onScroll()
+
+/* ---------- scroll spy ---------- */
+var tocLinks=[].slice.call(document.querySelectorAll('#toc a'))
+var targets=tocLinks.map(function(a){return document.getElementById(a.getAttribute('href').slice(1))}).filter(Boolean)
+var ticking=false
+function spy(){
+  ticking=false
+  var line=innerHeight*0.28, current=null
+  for(var i=0;i<targets.length;i++){
+    if(targets[i].getBoundingClientRect().top<=line) current=targets[i]
+  }
+  tocLinks.forEach(function(a){a.classList.remove('on')})
+  document.querySelectorAll('#toc li.open').forEach(function(li){li.classList.remove('open')})
+  if(!current) return
+  var active=document.querySelector('#toc a[href="#'+current.id+'"]')
+  if(!active) return
+  active.classList.add('on')
+  var rootLi=active.closest('.toc > ol > li')
+  if(rootLi){
+    rootLi.classList.add('open')
+    var rootA=rootLi.querySelector(':scope > a')
+    if(rootA && rootA!==active) rootA.classList.add('on')
+  }
+}
+addEventListener('scroll',function(){if(!ticking){ticking=true;requestAnimationFrame(spy)}},{passive:true})
+spy()
+
+/* ---------- mobile toc ---------- */
+var tocBtn=document.getElementById('tocBtn'),tocOverlay=document.getElementById('tocOverlay')
+document.getElementById('tocMobile').innerHTML=document.getElementById('toc').innerHTML
+tocBtn.addEventListener('click',function(){tocOverlay.classList.add('show')})
+document.getElementById('tocClose').addEventListener('click',function(){tocOverlay.classList.remove('show')})
+tocOverlay.addEventListener('click',function(e){if(e.target.tagName==='A')tocOverlay.classList.remove('show')})
+
+/* ---------- reveal + counters ---------- */
+document.querySelectorAll('.chapter h3, .code, .tbl, .wins, .pull, .diagram, .ba, .demo, .note').forEach(function(el){el.classList.add('rv')})
+var io=new IntersectionObserver(function(entries){
+  entries.forEach(function(e){
+    if(!e.isIntersecting) return
+    e.target.classList.add('in')
+    io.unobserve(e.target)
+  })
+},{threshold:.12})
+document.querySelectorAll('.rv').forEach(function(el){io.observe(el)})
+var cio=new IntersectionObserver(function(entries){
+  entries.forEach(function(e){
+    if(!e.isIntersecting) return
+    var el=e.target, end=+el.getAttribute('data-count'), t0=null
+    function step(t){
+      if(!t0)t0=t
+      var p=Math.min((t-t0)/900,1)
+      p=1-Math.pow(1-p,4)
+      el.textContent=Math.round(end*p).toLocaleString('en-US')
+      if(p<1)requestAnimationFrame(step)
+    }
+    requestAnimationFrame(step)
+    cio.unobserve(el)
+  })
+},{threshold:.6})
+document.querySelectorAll('[data-count]').forEach(function(el){cio.observe(el)})
+
+/* ================= DEMO 1 : the selector ================= */
+var COLS=[
+  {key:'invoiceLabel',label:'Invoice',sortable:true},
+  {key:'invoiceType',label:'Type',sortable:false},
+  {key:'customer',label:'Customer',sortable:true},
+  {key:'orderRef',label:'Order',sortable:false},
+  {key:'status',label:'Status',sortable:true},
+  {key:'issuedAt',label:'Issued at',sortable:true},
+  {key:'amount',label:'Amount',sortable:true,align:'right'}
+]
+var ALLCOLS=COLS.map(function(c){return c.key})
+var STATUS_COLORS={paid:'#16a34a',pending:'#d97706',processing:'#2563eb',overdue:'#dc2626',open:'#64748b'}
+var ROWS=[
+  {invoiceLabel:'Product invoice',invoiceType:'product',customer:'Acme Retail',orderRef:'ORD-2026-0001',status:'paid',issuedAt:'2026-03-03',amount:462},
+  {invoiceLabel:'Fees invoice',invoiceType:'fees',customer:'Acme Retail',orderRef:'ORD-2026-0001',status:'overdue',issuedAt:'2026-03-04',amount:83},
+  {invoiceLabel:'Product invoice',invoiceType:'product',customer:'Northwind Trading',orderRef:'ORD-2026-0002',status:'pending',issuedAt:'2026-03-05',amount:1240},
+  {invoiceLabel:'Shipping invoice',invoiceType:'shipping',customer:'Bluewave Studio',orderRef:'ORD-2026-0003',status:'processing',issuedAt:'2026-03-06',amount:96},
+  {invoiceLabel:'Product invoice',invoiceType:'product',customer:'Maison Ledger',orderRef:'ORD-2026-0004',status:'overdue',issuedAt:'2026-03-08',amount:2310},
+  {invoiceLabel:'Tax adjustment invoice',invoiceType:'tax adjustment',customer:'Delta Parts',orderRef:'ORD-2026-0005',status:'open',issuedAt:'2026-03-09',amount:54},
+  {invoiceLabel:'Product invoice',invoiceType:'product',customer:'Urban Supply',orderRef:'ORD-2026-0006',status:'paid',issuedAt:'2026-03-10',amount:745},
+  {invoiceLabel:'Fees invoice',invoiceType:'fees',customer:'Acme Retail',orderRef:'ORD-2026-0007',status:'processing',issuedAt:'2026-03-12',amount:129},
+  {invoiceLabel:'Product invoice',invoiceType:'product',customer:'Vertex Mobility',orderRef:'ORD-2026-0008',status:'overdue',issuedAt:'2026-03-14',amount:980},
+  {invoiceLabel:'Shipping invoice',invoiceType:'shipping',customer:'Sora Market',orderRef:'ORD-2026-0009',status:'pending',issuedAt:'2026-03-15',amount:61}
+]
+var presets=[
+  {id:'follow-up-overdue',label:'Overdue follow-up',canDelete:true,state:{filters:{status:['overdue'],customer:[]},searchQuery:'',sort:{key:'issuedAt',dir:'desc'},visibleColumns:ALLCOLS.slice()}},
+  {id:'acme-operations',label:'Acme operations',canDelete:true,state:{filters:{status:[],customer:['Acme Retail']},searchQuery:'',sort:{key:'amount',dir:'desc'},visibleColumns:ALLCOLS.filter(function(k){return k!=='invoiceType'})}},
+  {id:'month-end-review',label:'Month-end review',canDelete:false,state:{filters:{status:[],customer:[]},searchQuery:'invoice',sort:{key:'amount',dir:'desc'},visibleColumns:ALLCOLS.slice()}}
+]
+var state={filters:{status:[],customer:[]},searchQuery:'',sort:{key:'issuedAt',dir:'desc'},visibleColumns:ALLCOLS.slice()}
+
+var $=function(id){return document.getElementById(id)}
+var pop=$('m1-pop'),bookmark=$('m1-bookmark'),plist=$('m1-plist'),psearch=$('m1-psearch')
+var veil=$('m1-veil'),nameInput=$('m1-name')
+
+function norm(s){return s.normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase().trim()}
+function sortedCopy(a){return a.slice().sort()}
+function sameState(a,b){
+  return JSON.stringify({f:{s:sortedCopy(a.filters.status),c:sortedCopy(a.filters.customer)},q:a.searchQuery,so:a.sort,v:sortedCopy(a.visibleColumns)})
+      === JSON.stringify({f:{s:sortedCopy(b.filters.status),c:sortedCopy(b.filters.customer)},q:b.searchQuery,so:b.sort,v:sortedCopy(b.visibleColumns)})
+}
+function activePreset(){
+  for(var i=0;i<presets.length;i++) if(sameState(presets[i].state,state)) return presets[i]
+  return null
+}
+function cloneState(s){return JSON.parse(JSON.stringify(s))}
+function cap(s){return s.charAt(0).toUpperCase()+s.slice(1)}
+function colLabel(key){for(var i=0;i<COLS.length;i++)if(COLS[i].key===key)return COLS[i].label;return key}
+
+function filteredRows(){
+  var q=norm(state.searchQuery)
+  return ROWS.filter(function(r){
+    if(state.filters.status.length && state.filters.status.indexOf(r.status)<0) return false
+    if(state.filters.customer.length && state.filters.customer.indexOf(r.customer)<0) return false
+    if(q && norm(r.invoiceLabel+' '+r.customer+' '+r.orderRef).indexOf(q)<0) return false
+    return true
+  }).sort(function(a,b){
+    if(!state.sort) return 0
+    var k=state.sort.key,va=a[k],vb=b[k]
+    var c=(typeof va==='number')?va-vb:String(va).localeCompare(String(vb))
+    return state.sort.dir==='desc'?-c:c
+  })
+}
+
+var SORT_UP='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="11" height="11"><path d="M4 6h9M4 12h7M4 18h5M17 16V6m0 0-3 3m3-3 3 3"/></svg>'
+var SORT_DOWN='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="11" height="11"><path d="M4 6h9M4 12h7M4 18h5M17 8v10m0 0-3-3m3 3 3-3"/></svg>'
+var COLS_ICO='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="11" height="11"><rect x="4" y="5" width="16" height="14" rx="1.5"/><path d="M10 5v14M15 5v14"/></svg>'
+var BOOKMARK_ICO='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M7 4h10a1 1 0 0 1 1 1v16l-6-3.8L6 21V5a1 1 0 0 1 1-1Z"/></svg>'
+var CHECK_ICO='<svg viewBox="0 0 24 24" fill="currentColor"><path fill-rule="evenodd" d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20Zm4.7 8.2a1 1 0 0 0-1.4-1.4L11 13.1l-2.3-2.3a1 1 0 1 0-1.4 1.4l3 3a1 1 0 0 0 1.4 0l5-5Z" clip-rule="evenodd"/></svg>'
+var TRASH_ICO='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 7h16M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2m3 0-1 13a1 1 0 0 1-1 1H8a1 1 0 0 1-1-1L6 7m4 4v6m4-6v6"/></svg>'
+
+function stateTagsHTML(s,limit){
+  var tags=[]
+  if(s.searchQuery) tags.push('<span class="ptag">🔍 '+esc(s.searchQuery)+'</span>')
+  s.filters.status.forEach(function(v){tags.push('<span class="ptag">Status: '+cap(v)+'</span>')})
+  s.filters.customer.forEach(function(v){tags.push('<span class="ptag">Customer: '+esc(v)+'</span>')})
+  if(limit && tags.length>limit){
+    var extra=tags.length-limit
+    tags=tags.slice(0,limit)
+    tags.push('<span class="ptag">+'+extra+'</span>')
+  }
+  return tags.join('')
+}
+function presetMetaHTML(s){
+  var out=''
+  if(s.sort) out+='<span>'+(s.sort.dir==='asc'?SORT_UP:SORT_DOWN)+esc(colLabel(s.sort.key))+'</span>'
+  out+='<span>'+COLS_ICO+s.visibleColumns.length+' columns</span>'
+  return out
+}
+
+function renderPresetList(){
+  var q=norm(psearch.value)
+  var act=activePreset()
+  var visible=presets
+    .filter(function(p){return !q||norm(p.label).indexOf(q)>=0})
+    .sort(function(a,b){return a.label.localeCompare(b.label,undefined,{numeric:true,sensitivity:'base'})})
+  if(!visible.length){
+    plist.innerHTML='<div class="p-empty">'+(presets.length?'No matching views — try another name.':'No saved views yet. Save the current setup for repeated work.')+'</div>'
+    return
+  }
+  plist.innerHTML=visible.map(function(p){
+    var isActive=act&&act.id===p.id
+    return '<div class="m-preset'+(isActive?' active':'')+'" data-id="'+p.id+'" role="button" tabindex="0" aria-pressed="'+(!!isActive)+'">'
+      +'<span class="pk">'+(isActive?CHECK_ICO:BOOKMARK_ICO)+'</span>'
+      +'<span class="pbody"><span class="pl">'+esc(p.label)+'</span>'
+      +'<span class="pmeta">'+presetMetaHTML(p.state)+'</span>'
+      +'<span class="ptags">'+stateTagsHTML(p.state,3)+'</span></span>'
+      +(p.canDelete?'<button class="pdel" data-del="'+p.id+'" aria-label="Delete view">'+TRASH_ICO+'</button>':'')
+      +'</div>'
+  }).join('')
+}
+
+function renderTable(){
+  var thead=$('m1-thead'),tbody=$('m1-tbody')
+  var cols=COLS.filter(function(c){return state.visibleColumns.indexOf(c.key)>=0})
+  thead.innerHTML=cols.map(function(c){
+    var arr=(state.sort&&state.sort.key===c.key)?'<span class="arr">'+(state.sort.dir==='asc'?'▲':'▼')+'</span>':''
+    return '<th'+(c.align==='right'?' style="text-align:right"':'')+'>'+c.label+arr+'</th>'
+  }).join('')
+  var rows=filteredRows()
+  if(!rows.length){
+    tbody.innerHTML='<tr><td colspan="'+cols.length+'"><div class="m-empty">No invoices match the current view.</div></td></tr>'
+  } else {
+    tbody.innerHTML=rows.map(function(r,i){
+      return '<tr style="animation-delay:'+(i*22)+'ms">'+cols.map(function(c){
+        if(c.key==='status') return '<td><span class="m-status"><i style="background:'+STATUS_COLORS[r.status]+'"></i>'+cap(r.status)+'</span></td>'
+        if(c.key==='amount') return '<td class="m-amount">€'+r.amount.toLocaleString('en-US')+'</td>'
+        return '<td>'+esc(String(r[c.key]))+'</td>'
+      }).join('')+'</tr>'
+    }).join('')
+  }
+  $('m1-count').textContent=rows.length+' / '+ROWS.length+' invoices'
+}
+
+function renderTags(){
+  var el=$('m1-tags'),html=''
+  state.filters.status.forEach(function(v){
+    html+='<span class="m-tag"><span class="swatch" style="background:'+STATUS_COLORS[v]+'"></span>Status: '+cap(v)+'<span class="x" data-rm="status:'+v+'">×</span></span>'
+  })
+  state.filters.customer.forEach(function(v){
+    html+='<span class="m-tag">Customer: '+esc(v)+'<span class="x" data-rm="customer:'+v+'">×</span></span>'
+  })
+  el.innerHTML=html
+}
+
+function renderState(){
+  var act=activePreset()
+  $('m1-dot').classList.toggle('show',!!act)
+  $('m1-search').textContent=state.searchQuery
+  var f=[]
+  if(state.filters.status.length) f.push('<span class="k">status</span>: [<span class="v">'+state.filters.status.map(function(v){return '"'+v+'"'}).join(', ')+'</span>]')
+  if(state.filters.customer.length) f.push('<span class="k">customer</span>: [<span class="v">'+state.filters.customer.map(function(v){return '"'+esc(v)+'"'}).join(', ')+'</span>]')
+  $('m1-state').innerHTML='<b>DataListPresetState</b> · filters: {'+(f.join(', ')||' ')+'} · search: <span class="v">"'+esc(state.searchQuery)+'"</span> · sort: <span class="v">'+(state.sort?state.sort.key+' '+state.sort.dir:'null')+'</span> · columns: <span class="v">'+state.visibleColumns.length+'/'+ALLCOLS.length+'</span> · activePreset: <span class="v">'+(act?'"'+esc(act.label)+'"':'null')+'</span>'
+}
+
+function renderAll(){renderTable();renderTags();renderState();renderPresetList()}
+
+bookmark.addEventListener('click',function(e){
+  e.stopPropagation()
+  pop.classList.toggle('show')
+  if(pop.classList.contains('show')){psearch.value='';renderPresetList();psearch.focus()}
+})
+document.addEventListener('click',function(e){
+  if(!pop.contains(e.target)&&e.target!==bookmark) pop.classList.remove('show')
+})
+pop.addEventListener('click',function(e){
+  e.stopPropagation()
+  var del=e.target.closest('[data-del]')
+  if(del){
+    var id=del.getAttribute('data-del')
+    presets=presets.filter(function(p){return p.id!==id})
+    renderAll()
+    return
+  }
+  var card=e.target.closest('.m-preset')
+  if(card){
+    var preset=presets.filter(function(p){return p.id===card.getAttribute('data-id')})[0]
+    if(preset){state=cloneState(preset.state);renderAll();setTimeout(function(){pop.classList.remove('show')},220)}
+  }
+})
+pop.addEventListener('keydown',function(e){
+  if((e.key==='Enter'||e.key===' ')&&e.target.classList.contains('m-preset')){e.preventDefault();e.target.click()}
+})
+psearch.addEventListener('input',renderPresetList)
+
+$('m1-tags').addEventListener('click',function(e){
+  var rm=e.target.getAttribute('data-rm')
+  if(!rm) return
+  var parts=rm.split(':'),kind=parts[0],val=parts.slice(1).join(':')
+  state.filters[kind]=state.filters[kind].filter(function(v){return v!==val})
+  renderAll()
+})
+
+$('m1-create').addEventListener('click',function(){
+  pop.classList.remove('show')
+  nameInput.value=''
+  $('m1-mpreview').innerHTML='<span class="pmeta" style="display:flex;gap:12px;color:#98a2b3;font-size:11px">'+presetMetaHTML(state)+'</span><span class="ptags" style="display:flex;flex-wrap:wrap;gap:4px;margin-top:6px">'+(stateTagsHTML(state,6)||'<span class="ptag">No filters — full table</span>')+'</span>'
+  veil.classList.add('show')
+  setTimeout(function(){nameInput.focus()},60)
+})
+$('m1-cancel').addEventListener('click',function(){veil.classList.remove('show')})
+$('m1-save').addEventListener('click',function(){
+  var label=nameInput.value.trim()
+  if(!label){nameInput.focus();return}
+  presets.push({id:'view-'+Date.now(),label:label,canDelete:true,state:cloneState(state)})
+  veil.classList.remove('show')
+  renderAll()
+  bookmark.click()
+})
+nameInput.addEventListener('keydown',function(e){if(e.key==='Enter')$('m1-save').click()})
+veil.addEventListener('click',function(e){if(e.target===veil)veil.classList.remove('show')})
+
+renderAll()
+
+/* ================= DEMO 2 : deep link ================= */
+var ldConsole=$('ld-console'),ldQs=$('ld-qs'),ldRunning=false
+function ldLine(html,cls,delay){
+  return new Promise(function(res){
+    setTimeout(function(){
+      var div=document.createElement('div')
+      div.className='cl '+(cls||'')
+      div.innerHTML=html
+      ldConsole.appendChild(div)
+      res()
+    },delay)
+  })
+}
+function ldReset(){
+  ldConsole.innerHTML=''
+  ldQs.classList.remove('gone')
+  ldRunning=false
+}
+$('ld-reset').addEventListener('click',ldReset)
+$('ld-run').addEventListener('click',function(){
+  if(ldRunning) return
+  ldReset();ldRunning=true
+  ldLine('→ route enter <span class="blue">/seller/invoices</span><span class="warmc">?preset=follow-up-overdue</span>','t0',80)
+  .then(function(){return ldLine('  presets query <span class="dim">[\'api\',\'tableViews\',\'list\']</span> … pending','dim',420)})
+  .then(function(){return ldLine('  presets query settled · <span class="ok">3 views</span> <span class="dim">(engine waited — a slow network never loses the link)</span>','',900)})
+  .then(function(){return ldLine('✓ apply(<span class="warmc">"Overdue follow-up"</span>) · filters + search + sort + visible columns','ok',500)})
+  .then(function(){return ldLine('✓ routeQuery.consume(<span class="warmc">\'preset\'</span>) · one-shot — the URL is clean, the table is free to diverge','blue',600)})
+  .then(function(){
+    ldQs.classList.add('gone')
+    return ldLine('  <span class="dim">// unknown id? consumed silently, table state untouched — fails closed</span>','dim',700)
+  })
+  .then(function(){ldRunning=false})
+})
+})()
+</script>
+</body>
+</html>
