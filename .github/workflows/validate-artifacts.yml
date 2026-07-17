@@ -1,0 +1,25 @@
+name: Validate artifacts
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+      - name: Validate static artifact conventions
+        shell: bash
+        run: |
+          set -euo pipefail
+          while IFS= read -r artifact; do
+            test -f "$artifact/index.html"
+            rg -qi '^\s*<!doctype html' "$artifact/index.html"
+            rg -q "href=\"${artifact}/" index.html
+          done < <(find artifacts -mindepth 2 -maxdepth 2 -type d -name 'pr-*' | sort)

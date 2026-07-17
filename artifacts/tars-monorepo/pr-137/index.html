@@ -1,0 +1,1256 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Server-State Rewrite — tars-monorepo PR #137</title>
+<meta name="description" content="One typed server-state architecture across customer, market and admin. TanStack Query under Nuxt, a client generated from controllers, and a marketplace that navigates instantly.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500;1,9..144,600&family=Instrument+Sans:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg: oklch(16.5% .026 262);
+  --bg-deep: oklch(13.8% .024 262);
+  --surface: oklch(20% .028 262);
+  --surface-2: oklch(23% .03 262);
+  --line: oklch(29% .028 262);
+  --line-soft: oklch(24.5% .026 262);
+  --ink: oklch(93% .012 262);
+  --muted: oklch(70% .024 262);
+  --faint: oklch(54% .03 262);
+  --amber: #FDBF62;
+  --amber-deep: #D98F1F;
+  --blue: #7DA2F0;
+  --blue-deep: #2B4D93;
+  --green: #56C878;
+  --red: #E87878;
+  --c-key: #86A9F2;
+  --c-str: #F2C98A;
+  --c-com: #5E6C8F;
+  --c-num: #EFAB8A;
+  --c-fn: #EBDCAE;
+  --c-typ: #93CFC0;
+  --sans: 'Instrument Sans', system-ui, sans-serif;
+  --serif: 'Fraunces', Georgia, serif;
+  --mono: 'IBM Plex Mono', ui-monospace, monospace;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  background:var(--bg);
+  color:var(--ink);
+  font-family:var(--sans);
+  font-size:16.5px;
+  line-height:1.65;
+  -webkit-font-smoothing:antialiased;
+}
+::selection{background:oklch(45% .1 262);color:#fff}
+a{color:var(--blue);text-decoration:none}
+a:hover{text-decoration:underline;text-underline-offset:3px}
+
+/* ---------- progress bar ---------- */
+#progress{position:fixed;top:0;left:0;height:2px;width:0;background:var(--amber);z-index:99;transition:width .1s linear}
+
+/* ---------- layout ---------- */
+.shell{display:grid;grid-template-columns:288px minmax(0,1fr);max-width:1280px;margin:0 auto}
+.rail{position:sticky;top:0;height:100vh;overflow-y:auto;padding:clamp(24px,4vh,48px) 20px 48px 32px;border-right:1px solid var(--line-soft);scrollbar-width:thin;scrollbar-color:var(--line) transparent}
+main{min-width:0;padding:0 clamp(24px,5vw,84px) 120px}
+.col{max-width:800px}
+
+/* ---------- rail / sommaire ---------- */
+.rail .brand{font-family:var(--mono);font-size:11.5px;letter-spacing:.08em;color:var(--faint);text-transform:uppercase;display:block;margin-bottom:6px}
+.rail .brand b{color:var(--amber);font-weight:500}
+.rail h2{font-family:var(--serif);font-weight:600;font-size:19px;line-height:1.25;margin-bottom:26px;color:var(--ink)}
+.toc ol{list-style:none}
+.toc>ol>li{margin-bottom:2px}
+.toc a{display:flex;gap:10px;align-items:baseline;padding:5px 10px 5px 8px;border-radius:6px;color:var(--muted);font-size:13.5px;line-height:1.35;border-left:2px solid transparent}
+.toc a:hover{color:var(--ink);text-decoration:none;background:var(--surface)}
+.toc .num{font-family:var(--mono);font-size:10.5px;color:var(--faint);flex:0 0 20px;letter-spacing:.02em}
+.toc .sub{list-style:none;margin:1px 0 6px;overflow:hidden;max-height:0;transition:max-height .35s cubic-bezier(.22,1,.36,1)}
+.toc li.open .sub{max-height:400px}
+.toc .sub a{padding:3.5px 10px 3.5px 38px;font-size:12.5px;color:var(--faint)}
+.toc .sub a:hover{color:var(--ink)}
+.toc a.on{color:var(--amber);border-left-color:var(--amber);background:oklch(22% .03 262)}
+.toc .sub a.on{color:var(--amber);border-left-color:var(--amber)}
+
+/* mobile toc */
+#tocBtn{display:none;position:fixed;bottom:20px;right:20px;z-index:60;background:var(--surface-2);color:var(--ink);border:1px solid var(--line);border-radius:999px;font-family:var(--mono);font-size:12px;padding:11px 18px;cursor:pointer;letter-spacing:.06em}
+#tocOverlay{display:none;position:fixed;inset:0;background:oklch(12% .02 262 / .92);z-index:70;overflow-y:auto;padding:56px 24px}
+#tocOverlay.show{display:block}
+#tocClose{position:fixed;top:14px;right:18px;background:none;border:none;color:var(--muted);font-size:26px;cursor:pointer}
+
+/* ---------- hero ---------- */
+.hero{padding:clamp(48px,9vh,110px) 0 0}
+.eyebrow{font-family:var(--mono);font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--faint)}
+.eyebrow em{color:var(--amber);font-style:normal}
+.hero h1{
+  font-family:var(--serif);
+  font-weight:600;
+  font-size:clamp(42px,6.2vw,76px);
+  line-height:1.02;
+  letter-spacing:-.015em;
+  margin:18px 0 26px;
+}
+.hero h1 .dot{color:var(--amber)}
+.hero .lede{font-size:clamp(17px,1.6vw,20px);color:var(--muted);max-width:620px;line-height:1.6}
+.hero .lede b{color:var(--ink);font-weight:600}
+
+.statstrip{display:flex;flex-wrap:wrap;gap:0 44px;margin:52px 0 0;padding:26px 0 30px;border-top:1px solid var(--line-soft);border-bottom:1px solid var(--line-soft)}
+.stat{padding:6px 0}
+.stat .v{font-family:var(--serif);font-weight:600;font-size:clamp(28px,3vw,38px);line-height:1.1;font-variant-numeric:tabular-nums}
+.stat .v .plus{color:var(--green)}
+.stat .v .minus{color:var(--red)}
+.stat .l{font-size:12.5px;color:var(--faint);margin-top:3px;letter-spacing:.02em}
+
+/* lighthouse */
+.lh{display:flex;align-items:flex-end;justify-content:space-between;gap:24px;flex-wrap:wrap;margin-top:44px}
+.lh .rings{display:flex;gap:clamp(14px,3vw,34px)}
+.ring{text-align:center}
+.ring svg{width:clamp(64px,7vw,84px);height:auto;display:block;margin:0 auto}
+.ring circle.track{fill:none;stroke:var(--line-soft);stroke-width:6}
+.ring circle.arc{fill:none;stroke:var(--green);stroke-width:6;stroke-linecap:round;stroke-dasharray:213.6;stroke-dashoffset:213.6;transform:rotate(-90deg);transform-origin:center;transition:stroke-dashoffset 1.3s cubic-bezier(.22,1,.36,1)}
+.ring text{fill:var(--ink);font-family:var(--mono);font-size:19px;font-weight:500}
+.ring .rl{font-size:11.5px;color:var(--faint);margin-top:7px}
+.lh .cap{font-size:13px;color:var(--faint);max-width:250px;line-height:1.5}
+.lh .cap b{color:var(--muted);font-weight:500}
+
+/* ---------- chapters ---------- */
+.chapter{padding-top:clamp(72px,11vh,120px)}
+.ch-head{display:flex;align-items:baseline;gap:18px;border-bottom:1px solid var(--line);padding-bottom:16px;margin-bottom:14px}
+.ch-num{font-family:var(--mono);font-size:13px;color:var(--amber);letter-spacing:.08em}
+.ch-head h2{font-family:var(--serif);font-weight:600;font-size:clamp(28px,3.4vw,40px);letter-spacing:-.01em;line-height:1.1}
+.ch-lede{color:var(--muted);font-size:17px;max-width:660px;margin:14px 0 0}
+.chapter h3{font-family:var(--serif);font-weight:600;font-size:clamp(21px,2.2vw,25px);margin:56px 0 14px;letter-spacing:-.005em}
+.chapter h3 .hnum{font-family:var(--mono);font-size:12px;color:var(--faint);margin-right:10px;font-weight:400}
+.chapter p{margin:14px 0;max-width:680px;color:oklch(86% .015 262)}
+.chapter p b,.chapter li b{color:var(--ink)}
+.chapter ul{margin:14px 0 14px 4px;max-width:680px;list-style:none}
+.chapter ul li{padding:5px 0 5px 22px;position:relative;color:oklch(86% .015 262)}
+.chapter ul li::before{content:'';position:absolute;left:2px;top:.85em;width:9px;height:1.5px;background:var(--amber-deep)}
+.chapter code:not(pre code){font-family:var(--mono);font-size:.86em;background:var(--surface);border:1px solid var(--line-soft);border-radius:4px;padding:1.5px 6px;color:var(--c-str);white-space:nowrap}
+
+/* ---------- code panels ---------- */
+.code{background:var(--bg-deep);border:1px solid var(--line-soft);border-radius:10px;margin:22px 0;overflow:hidden}
+.code .bar{display:flex;align-items:center;justify-content:space-between;padding:9px 14px;border-bottom:1px solid var(--line-soft)}
+.code .path{font-family:var(--mono);font-size:11.5px;color:var(--faint);letter-spacing:.02em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.code .copy{background:none;border:1px solid var(--line-soft);color:var(--faint);font-family:var(--mono);font-size:10.5px;border-radius:5px;padding:3px 9px;cursor:pointer;letter-spacing:.05em;flex-shrink:0;margin-left:12px}
+.code .copy:hover{color:var(--ink);border-color:var(--line)}
+.code pre{padding:16px 18px;overflow-x:auto;font-family:var(--mono);font-size:13px;line-height:1.62;scrollbar-width:thin;scrollbar-color:var(--line) transparent}
+.code pre code{display:block;min-width:max-content}
+.tok-k{color:var(--c-key)}
+.tok-s{color:var(--c-str)}
+.tok-c{color:var(--c-com);font-style:italic}
+.tok-n{color:var(--c-num)}
+.tok-f{color:var(--c-fn)}
+.tok-t{color:var(--c-typ)}
+.tok-tag{color:var(--c-key)}
+.tok-attr{color:var(--c-typ)}
+
+/* before / after */
+.ba{display:grid;gap:14px;margin:22px 0}
+.ba .code{margin:0}
+.ba .tag{font-family:var(--mono);font-size:10px;letter-spacing:.14em;padding:2.5px 8px;border-radius:4px;margin-right:10px}
+.ba .before .tag{background:oklch(30% .07 20);color:var(--red)}
+.ba .after .tag{background:oklch(30% .07 155);color:var(--green)}
+.ba .before{border-color:oklch(32% .05 20)}
+.ba .after{border-color:oklch(32% .05 155)}
+
+/* ---------- tables ---------- */
+.tbl{width:100%;border-collapse:collapse;margin:22px 0;font-size:14px}
+.tbl th{font-family:var(--mono);font-size:10.5px;text-transform:uppercase;letter-spacing:.1em;color:var(--faint);text-align:left;font-weight:500;padding:8px 14px 8px 0;border-bottom:1px solid var(--line)}
+.tbl td{padding:10px 14px 10px 0;border-bottom:1px solid var(--line-soft);vertical-align:top;color:oklch(86% .015 262)}
+.tbl td:first-child{color:var(--ink);font-weight:500}
+.tbl code{font-family:var(--mono);font-size:.86em;color:var(--c-str);background:var(--surface);border:1px solid var(--line-soft);border-radius:4px;padding:1px 5px;white-space:nowrap}
+.tbl .ok{color:var(--green);font-weight:500}
+
+/* ---------- diagram ---------- */
+.diagram{margin:26px 0;display:flex;flex-direction:column;gap:0;max-width:640px}
+.dbox{background:var(--surface);border:1px solid var(--line);border-radius:9px;padding:14px 18px;position:relative}
+.dbox .dt{font-weight:600;font-size:14.5px}
+.dbox .dd{font-size:12.5px;color:var(--faint);margin-top:2px;font-family:var(--mono);letter-spacing:.01em}
+.dbox .own{position:absolute;top:13px;right:16px;font-family:var(--mono);font-size:10px;letter-spacing:.1em;color:var(--amber);text-transform:uppercase}
+.darrow{width:1.5px;height:26px;background:var(--line);margin-left:38px;position:relative}
+.darrow::after{content:'';position:absolute;bottom:0;left:-3.3px;border:4px solid transparent;border-top-color:var(--line)}
+
+/* ---------- key tree ---------- */
+.keytree{background:var(--bg-deep);border:1px solid var(--line-soft);border-radius:10px;padding:18px 22px;margin:22px 0;font-family:var(--mono);font-size:13px;line-height:2}
+.keytree .kt{display:block}
+.keytree .lvl{color:var(--faint);user-select:none}
+.keytree .anno{color:var(--c-com);font-style:italic;font-size:12px;margin-left:18px}
+
+/* ---------- tabs ---------- */
+.tabs{margin:22px 0}
+.tabbar{display:flex;gap:6px;border-bottom:1px solid var(--line)}
+.tabbar button{background:none;border:none;border-bottom:2px solid transparent;color:var(--faint);font-family:var(--sans);font-size:14px;font-weight:500;padding:9px 16px;cursor:pointer;margin-bottom:-1px}
+.tabbar button.on{color:var(--amber);border-bottom-color:var(--amber)}
+.tabpanes>div{display:none;padding-top:4px}
+.tabpanes>div.on{display:block}
+.policy{display:flex;gap:40px;flex-wrap:wrap;padding:20px 2px 6px}
+.policy .pv{font-family:var(--serif);font-size:27px;font-weight:600}
+.policy .pl{font-size:12px;color:var(--faint);margin-top:2px}
+.policy .pnote{font-size:13.5px;color:var(--muted);max-width:320px;align-self:center}
+
+/* ---------- callouts / pulls ---------- */
+.pull{border-left:2px solid var(--amber);padding:4px 0 4px 22px;margin:34px 0;font-family:var(--serif);font-size:clamp(19px,2vw,23px);line-height:1.45;font-weight:500;color:var(--ink);max-width:640px}
+.pull i{color:var(--amber);font-style:italic}
+.note{background:var(--surface);border:1px solid var(--line-soft);border-radius:9px;padding:14px 18px;margin:20px 0;font-size:14px;color:var(--muted);max-width:680px}
+.note b{color:var(--ink)}
+
+/* ---------- win cards ---------- */
+.wins{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:14px;margin:26px 0}
+.win{border:1px solid var(--line-soft);border-radius:10px;padding:18px 18px 16px;background:linear-gradient(180deg,var(--surface) 0%,transparent 140%)}
+.win .wk{font-family:var(--mono);font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--amber);margin-bottom:10px}
+.win .wt{font-family:var(--serif);font-size:19px;font-weight:600;line-height:1.25;margin-bottom:8px}
+.win p{font-size:13.5px;color:var(--muted);margin:0;line-height:1.55}
+
+/* ---------- demo ---------- */
+.demo{border:1px solid var(--line);border-radius:12px;background:var(--bg-deep);margin:26px 0;overflow:hidden}
+.demo .dhead{padding:11px 18px;border-bottom:1px solid var(--line-soft);display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+.demo .dhead .t{font-family:var(--mono);font-size:11.5px;letter-spacing:.08em;color:var(--faint);text-transform:uppercase}
+.demo .dhead .t em{color:var(--amber);font-style:normal}
+.demo .dbody{display:grid;grid-template-columns:minmax(230px,300px) minmax(0,1fr);gap:0}
+.demo .stage{padding:22px;border-right:1px solid var(--line-soft);display:flex;flex-direction:column;gap:14px}
+.mockcard{border:1px solid var(--line);border-radius:10px;background:var(--surface);padding:0;cursor:pointer;transition:border-color .3s,box-shadow .3s;overflow:hidden}
+.mockcard.warm{border-color:var(--amber-deep);box-shadow:0 0 0 1px var(--amber-deep), 0 6px 24px -12px oklch(70% .12 75 / .5)}
+.mockcard .img{height:92px;background:
+  linear-gradient(120deg,oklch(30% .05 262),oklch(24% .04 262) 55%,oklch(33% .06 75/.35));position:relative}
+.mockcard .img::after{content:'ENCHÈRE';position:absolute;top:9px;left:10px;font-family:var(--mono);font-size:9px;letter-spacing:.14em;background:var(--amber);color:#1a1206;padding:2px 7px;border-radius:3px;font-weight:500}
+.mockcard .mc{padding:12px 14px 14px}
+.mockcard .mt{font-weight:600;font-size:13.5px;line-height:1.35}
+.mockcard .mm{font-family:var(--mono);font-size:11px;color:var(--faint);margin-top:4px}
+.mockcard .mp{font-family:var(--serif);font-size:19px;font-weight:600;margin-top:8px;color:var(--amber)}
+.demo .hint{font-size:12px;color:var(--faint);text-align:center}
+.demo .actions{display:flex;gap:10px;justify-content:center}
+.demo .actions button{font-family:var(--mono);font-size:12px;padding:8px 16px;border-radius:7px;cursor:pointer;letter-spacing:.03em}
+#navBtn{background:var(--amber);border:1px solid var(--amber);color:#1a1206;font-weight:500}
+#navBtn:hover{background:var(--amber-deep);border-color:var(--amber-deep)}
+#resetBtn{background:none;border:1px solid var(--line);color:var(--muted)}
+#resetBtn:hover{color:var(--ink)}
+.demo .console{padding:18px 20px;font-family:var(--mono);font-size:12px;line-height:1.9;min-height:280px;position:relative}
+.demo .console .cl{opacity:0;transform:translateY(4px);animation:clin .35s cubic-bezier(.22,1,.36,1) forwards;white-space:pre-wrap;word-break:break-word}
+@keyframes clin{to{opacity:1;transform:none}}
+.demo .console .t0{color:var(--faint)}
+.demo .console .ok{color:var(--green)}
+.demo .console .warmc{color:var(--amber)}
+.demo .console .dim{color:var(--c-com)}
+.demo .console .blue{color:var(--blue)}
+.demo .result{margin-top:14px;border-radius:9px;padding:14px 16px;border:1px solid var(--line);display:none}
+.demo .result.show{display:block;animation:clin .4s cubic-bezier(.22,1,.36,1) forwards}
+.demo .result.cache{border-color:oklch(38% .07 155);background:oklch(22% .035 155)}
+.demo .result.cold{border-color:oklch(38% .06 75);background:oklch(22% .03 75)}
+.demo .result .rt{font-family:var(--serif);font-size:18px;font-weight:600}
+.demo .result .rd{font-family:var(--mono);font-size:11.5px;color:var(--muted);margin-top:5px;line-height:1.7}
+.demo .skel{display:none;margin-top:14px}
+.demo .skel.show{display:block}
+.demo .skel .sk{height:12px;border-radius:5px;background:linear-gradient(90deg,var(--surface) 25%,var(--surface-2) 50%,var(--surface) 75%);background-size:200% 100%;animation:shimmer 1.1s linear infinite;margin-bottom:9px}
+@keyframes shimmer{to{background-position:-200% 0}}
+
+/* ---------- reveal ---------- */
+.rv{opacity:0;transform:translateY(14px);transition:opacity .7s cubic-bezier(.22,1,.36,1),transform .7s cubic-bezier(.22,1,.36,1)}
+.rv.in{opacity:1;transform:none}
+@media (prefers-reduced-motion:reduce){
+  .rv{opacity:1;transform:none;transition:none}
+  html{scroll-behavior:auto}
+  .ring circle.arc{transition:none}
+}
+
+/* ---------- footer ---------- */
+footer{border-top:1px solid var(--line);margin-top:110px;padding:34px 0 8px;display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap;font-size:13px;color:var(--faint)}
+footer .fm{font-family:var(--mono);font-size:11.5px;letter-spacing:.04em}
+
+@media (max-width:980px){
+  .shell{grid-template-columns:1fr}
+  .rail{display:none}
+  #tocBtn{display:block}
+  .demo .dbody{grid-template-columns:1fr}
+  .demo .stage{border-right:none;border-bottom:1px solid var(--line-soft)}
+}
+@media (min-width:700px){
+  .ba.cols{grid-template-columns:1fr 1fr}
+}
+</style>
+</head>
+<body>
+<div id="progress"></div>
+<button id="tocBtn">Sommaire</button>
+<div id="tocOverlay"><button id="tocClose">×</button><div id="tocMobile"></div></div>
+<div class="shell">
+
+<nav class="rail">
+  <span class="brand">tars-monorepo · <b>PR&nbsp;#137</b></span>
+  <h2>The server-state rewrite</h2>
+  <div class="toc" id="toc">
+  <ol>
+    <li><a href="#why"><span class="num">01</span>Why</a>
+      <ol class="sub">
+        <li><a href="#why-before">Life before: three async layers</a></li>
+        <li><a href="#why-bet">The bet</a></li>
+        <li><a href="#why-done">What “migrated” means</a></li>
+      </ol>
+    </li>
+    <li><a href="#wins"><span class="num">02</span>The wins</a>
+      <ol class="sub">
+        <li><a href="#wins-perf">Performance</a></li>
+        <li><a href="#wins-dx">Developer experience</a></li>
+        <li><a href="#wins-ux">User experience</a></li>
+      </ol>
+    </li>
+    <li><a href="#architecture"><span class="num">03</span>Architecture</a>
+      <ol class="sub">
+        <li><a href="#arch-layers">Three layers, one cache</a></li>
+        <li><a href="#arch-surfaces">The three client surfaces</a></li>
+        <li><a href="#arch-policy">Per-app cache policy</a></li>
+      </ol>
+    </li>
+    <li><a href="#client"><span class="num">04</span>The generated client</a>
+      <ol class="sub">
+        <li><a href="#client-controllers">Classify, don’t rewrite</a></li>
+        <li><a href="#client-operations">Every operation, four capabilities</a></li>
+        <li><a href="#client-keys">Keys as a typed hierarchy</a></li>
+        <li><a href="#client-naming">One naming grammar</a></li>
+      </ol>
+    </li>
+    <li><a href="#mutations"><span class="num">05</span>Mutations &amp; invalidation</a>
+      <ol class="sub">
+        <li><a href="#mutations-paths">Two mutation paths</a></li>
+        <li><a href="#mutations-invalidation">Invalidation you never write</a></li>
+        <li><a href="#mutations-explicit">When explicit is right</a></li>
+      </ol>
+    </li>
+    <li><a href="#patterns"><span class="num">06</span>Application patterns</a>
+      <ol class="sub">
+        <li><a href="#patterns-usequery">useQuery, the app-facing API</a></li>
+        <li><a href="#patterns-writable">Writable query data</a></li>
+        <li><a href="#patterns-effects">Query-local effects</a></li>
+        <li><a href="#patterns-pagecontext">Query-owned page context</a></li>
+        <li><a href="#patterns-stores">Stores stop mirroring</a></li>
+      </ol>
+    </li>
+    <li><a href="#speed"><span class="num">07</span>market-front, the speed run</a>
+      <ol class="sub">
+        <li><a href="#speed-ssr">One cache, server to client</a></li>
+        <li><a href="#speed-prefetch">defineQueryPrefetch</a></li>
+        <li><a href="#speed-catalog">The catalog prefetch compiler</a></li>
+        <li><a href="#speed-policies">Prefetch policies per link</a></li>
+        <li><a href="#speed-demo">Try it: hover to warm</a></li>
+        <li><a href="#speed-longtail">The long tail</a></li>
+      </ol>
+    </li>
+    <li><a href="#surfaces"><span class="num">08</span>Tables, forms &amp; drafts</a>
+      <ol class="sub">
+        <li><a href="#surfaces-datalist">DataList: declarative sources</a></li>
+        <li><a href="#surfaces-loading">Loading vs refreshing</a></li>
+        <li><a href="#surfaces-forms">Form options are queries</a></li>
+        <li><a href="#surfaces-drafts">The draft editor &amp; autosave</a></li>
+      </ol>
+    </li>
+    <li><a href="#unlocks"><span class="num">09</span>What this unlocks</a>
+      <ol class="sub">
+        <li><a href="#unlocks-inventory">Agorastock, offline-ready</a></li>
+        <li><a href="#unlocks-paths">The paths now open</a></li>
+      </ol>
+    </li>
+    <li><a href="#proof"><span class="num">10</span>Shipping &amp; proof</a>
+      <ol class="sub">
+        <li><a href="#proof-validation">Validation</a></li>
+        <li><a href="#proof-deploy">CI &amp; deployments</a></li>
+        <li><a href="#proof-review">How to review 99 commits</a></li>
+        <li><a href="#proof-boundaries">Deliberate boundaries</a></li>
+      </ol>
+    </li>
+  </ol>
+  </div>
+</nav>
+
+<main>
+<div class="col">
+<!-- ================= HERO ================= -->
+<header class="hero">
+  <span class="eyebrow">tars-monorepo · <em>PR #137</em> · refactor/tanstack-query-migration</span>
+  <h1>The server-state rewrite<span class="dot">.</span></h1>
+  <p class="lede">One typed server-state architecture across <b>customer</b>, <b>market</b> and <b>admin</b> — TanStack Query wired under Nuxt, a Query client <b>generated from our controllers</b>, and a marketplace that navigates <b>instantly</b>.</p>
+
+  <div class="statstrip">
+    <div class="stat"><div class="v" data-count="484">0</div><div class="l">files changed</div></div>
+    <div class="stat"><div class="v"><span class="plus">+12,359</span> <span class="minus">−6,852</span></div><div class="l">lines</div></div>
+    <div class="stat"><div class="v" data-count="99">0</div><div class="l">granular commits</div></div>
+    <div class="stat"><div class="v" data-count="497">0</div><div class="l">api-sdk tests</div></div>
+    <div class="stat"><div class="v">0</div><div class="l">legacy async helpers left</div></div>
+  </div>
+
+  <div class="lh rv">
+    <div class="rings">
+      <div class="ring"><svg viewBox="0 0 76 76"><circle class="track" cx="38" cy="38" r="34"/><circle class="arc" data-score="96" cx="38" cy="38" r="34"/><text x="38" y="45" text-anchor="middle">96</text></svg><div class="rl">Performance</div></div>
+      <div class="ring"><svg viewBox="0 0 76 76"><circle class="track" cx="38" cy="38" r="34"/><circle class="arc" data-score="92" cx="38" cy="38" r="34"/><text x="38" y="45" text-anchor="middle">92</text></svg><div class="rl">Accessibility</div></div>
+      <div class="ring"><svg viewBox="0 0 76 76"><circle class="track" cx="38" cy="38" r="34"/><circle class="arc" data-score="96" cx="38" cy="38" r="34"/><text x="38" y="45" text-anchor="middle">96</text></svg><div class="rl">Best Practices</div></div>
+      <div class="ring"><svg viewBox="0 0 76 76"><circle class="track" cx="38" cy="38" r="34"/><circle class="arc" data-score="100" cx="38" cy="38" r="34"/><text x="38" y="45" text-anchor="middle">100</text></svg><div class="rl">SEO</div></div>
+    </div>
+    <p class="cap"><b>agorastore.fr, after the migration.</b> Lighthouse on the live marketplace — server-rendered, hydrated from one Query cache.</p>
+  </div>
+</header>
+
+<!-- ================= 01 WHY ================= -->
+<section class="chapter" id="why">
+  <div class="ch-head"><span class="ch-num">01</span><h2>Why</h2></div>
+  <p class="ch-lede">Three apps, three ways to fetch, zero shared memory. Every screen paid the full price of every navigation.</p>
+
+  <h3 id="why-before"><span class="hnum">1.1</span>Life before: three async layers</h3>
+  <p>Server data flowed through <code>useAsyncState</code>, <code>useAsyncMutation</code> and Nuxt’s <code>useAsyncData</code> — three overlapping abstractions, each reinventing loading flags, refresh wiring and error handling. Nothing was cached. Navigating back to a page you saw four seconds ago refetched everything, behind a blocking spinner.</p>
+  <p>Worse, the state itself was duplicated: stores mirrored server responses into local refs, watchers synchronized the copies, and every mutation ended with someone remembering — or forgetting — which list to refresh by hand.</p>
+
+  <div class="code"><div class="bar"><span class="path">the old reflexes, everywhere</span><button class="copy">COPY</button></div>
+<pre><code class="lang-ts">// fetch: one-shot, uncached, per-component
+const { data: addresses, pending, refresh } = useAsyncState(
+  () =&gt; $api.addresses.getAddresses(userStore.organisationShortId),
+  { default: [] },
+)
+
+// mutate: then manually refresh whatever might have changed
+const changed = await action()
+if (changed) tableApi.refresh()
+
+// store: mirror the server value, then keep the copies in sync
+const user = ref&lt;User | null&gt;(null)
+watch(sessionUser, (value) =&gt; { user.value = value })</code></pre></div>
+
+  <h3 id="why-bet"><span class="hnum">1.2</span>The bet</h3>
+  <p>Make <b>TanStack Query the single owner of server state</b> — and make it invisible to write. We keep Nuxt. We keep our controllers as plain, inferred TypeScript. What changes is that keys, query options, cache writes and invalidation rules are <b>generated from the controllers</b> instead of hand-written at every call site.</p>
+  <div class="pull">Nobody hand-writes a query key, a cache write, or an invalidation rule <i>anywhere</i> in application code.</div>
+
+  <h3 id="why-done"><span class="hnum">1.3</span>What “migrated” means</h3>
+  <p>Not a pilot, not a coexistence layer. The migration is complete across application code — <code>useAsyncState</code>, <code>useAsyncMutation</code> and <code>useAsyncData</code> no longer exist in the migrated runtime surface.</p>
+  <table class="tbl">
+    <thead><tr><th>Surface</th><th>Status</th><th>Covered behavior</th></tr></thead>
+    <tbody>
+      <tr><td>customer-front</td><td class="ok">Migrated</td><td>Session bootstrap, stores, seller tables &amp; grids, drafts, appointments, onboarding, forms, actions, autosave</td></tr>
+      <tr><td>market-front</td><td class="ok">Migrated</td><td>SSR pages, catalogs &amp; facets, Prismic, query-owned page context, progressive item detail, PubNub patches, route &amp; catalog prefetching</td></tr>
+      <tr><td>admin-front</td><td class="ok">Migrated</td><td>Entity tables, detail queries, forms, actions, reports, remote option sources</td></tr>
+      <tr><td>shared-business</td><td class="ok">Migrated</td><td>Query runtime, per-app configuration, shared stores, SSR hydration, prefetch orchestration, cancellation &amp; error policy</td></tr>
+      <tr><td>shared-ui</td><td class="ok">Integrated</td><td>Shared <code>useQuery</code>, page-context binding, DataList, catalog compiler, form options, devtools, loading states</td></tr>
+      <tr><td>api-sdk</td><td class="ok">Integrated</td><td>Typed raw &amp; Query clients, standardized operations, generated keys &amp; options, signals, controller invalidation</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- ================= 02 WINS ================= -->
+<section class="chapter" id="wins">
+  <div class="ch-head"><span class="ch-num">02</span><h2>The wins</h2></div>
+  <p class="ch-lede">Three audiences, three payoffs: the visitor gets speed, the developer gets a client that writes itself, the user gets an interface that never goes blank.</p>
+
+  <h3 id="wins-perf"><span class="hnum">2.1</span>Performance — market-front flies</h3>
+  <p>The marketplace is now aggressive about doing work <b>before you ask for it</b> and never doing it <b>twice</b>. The server renders from a per-request Query cache, dehydrates it into the page, and the browser hydrates the same cache — so the client never refetches what the server already fetched. From there, smart prefetching warms the exact queries of the page you’re <i>about</i> to visit.</p>
+  <div class="wins">
+    <div class="win"><div class="wk">Initial load</div><div class="wt">SSR without the double fetch</div><p>Dehydrate on the server, hydrate on the client. SEO metadata, breadcrumbs and content read the same cache the page renders from.</p></div>
+    <div class="win"><div class="wk">Navigation</div><div class="wt">Instant, almost everywhere</div><p>Hovering a link prefetches the destination’s component <em>and</em> its exact data plan. By the time you click, the page renders from cache.</p></div>
+    <div class="win"><div class="wk">Revisits</div><div class="wt">Cache-aware suspense</div><p>Cached pages render immediately while stale entries revalidate in the background. Going “back” costs zero network round trips.</p></div>
+    <div class="win"><div class="wk">Waste</div><div class="wt">Obsolete work gets cancelled</div><p>Every generated query forwards its AbortSignal. Rapid filter, sort or route changes kill stale requests instead of racing them.</p></div>
+  </div>
+
+  <h3 id="wins-dx"><span class="hnum">2.2</span>Developer experience — the client writes itself</h3>
+  <p>Classify a controller method as a query or a mutation, and the SDK generates everything else: typed keys, <code>queryOptions</code>, <code>mutationOptions</code>, direct calls and same-controller invalidation. Types flow from the controller signature into the cache — <code>getQueryData</code>, <code>setQueryData</code>, prefetch and invalidation are all inferred, end to end.</p>
+  <div class="code"><div class="bar"><span class="path">one line of app code = key + fetch + cache + types</span><button class="copy">COPY</button></div>
+<pre><code class="lang-ts">const { data: item } = useQuery(() =&gt;
+  $client.items.get.queryOptions({ input: itemShortId.value }),
+)</code></pre></div>
+
+  <h3 id="wins-ux"><span class="hnum">2.3</span>User experience — nothing blocks anymore</h3>
+  <p>Initial loading and background refresh are now deliberately different states. A first visit keeps the existing skeletons; everything after happens <b>behind the data you already see</b>. Tables keep their rows interactive under a thin progress bar, grids get a compact floating spinner, and mutations refresh mounted data silently. Blank table shells are gone.</p>
+</section>
+
+<!-- ================= 03 ARCHITECTURE ================= -->
+<section class="chapter" id="architecture">
+  <div class="ch-head"><span class="ch-num">03</span><h2>Architecture</h2></div>
+  <p class="ch-lede">Four owners, one cache. Each layer does the thing it’s uniquely positioned to do — and nothing else.</p>
+
+  <h3 id="arch-layers"><span class="hnum">3.1</span>Three layers, one cache</h3>
+  <div class="diagram">
+    <div class="dbox"><div class="dt">Application <span class="dd" style="display:inline">app/config/query.ts</span></div><div class="dd">stale time · GC · retry · focus policy</div><span class="own">apps</span></div>
+    <div class="darrow"></div>
+    <div class="dbox"><div class="dt">Query runtime</div><div class="dd">per-request QueryClient · $api / $client · SSR dehydrate → hydrate · error &amp; cancellation policy</div><span class="own">shared-business</span></div>
+    <div class="darrow"></div>
+    <div class="dbox"><div class="dt">Generated operations</div><div class="dd">typed queryOptions · mutationOptions · data-tagged keys · controller invalidation</div><span class="own">api-sdk</span></div>
+    <div class="darrow"></div>
+    <div class="dbox"><div class="dt">Vue-facing sugar</div><div class="dd">useQuery · page context · DataList &amp; catalog engines · form option sources · devtools</div><span class="own">shared-ui</span></div>
+  </div>
+  <ul>
+    <li><b>Apps decide cache behavior</b>, because customer, admin and market have different freshness requirements.</li>
+    <li><b>shared-business creates and provides the clients</b>, because business stores and plugins call the API before app components exist.</li>
+    <li><b>shared-ui resolves the provided QueryClient</b> for tables, catalogs, forms and the shared <code>useQuery</code> — it never creates a second cache.</li>
+  </ul>
+
+  <h3 id="arch-surfaces"><span class="hnum">3.2</span>The three client surfaces</h3>
+  <table class="tbl">
+    <thead><tr><th>Surface</th><th>Use it for</th><th>Cache behavior</th></tr></thead>
+    <tbody>
+      <tr><td><code>$client</code></td><td>Normal API reads and commands — <b>the default path</b></td><td>Generates typed Query options and keys; mutations invalidate their controller’s active queries</td></tr>
+      <tr><td><code>$api</code></td><td>Raw transport where cache behavior would be wrong or handled elsewhere</td><td>No cache read, write or invalidation — deliberately inert</td></tr>
+      <tr><td><code>$queryClient</code></td><td>Explicit orchestration: prefetching, cross-controller effects</td><td>Direct access to the application-owned QueryClient</td></tr>
+    </tbody>
+  </table>
+  <p>Keeping <code>$api</code> visible rather than hiding it behind Query is a design choice: cache side effects are <b>opt-in at the client surface</b>, and exceptional flows keep a clean escape hatch.</p>
+
+  <h3 id="arch-policy"><span class="hnum">3.3</span>Each app owns its cache policy</h3>
+  <p>Same architecture, different freshness. Admin wants near-real-time and refetch-on-focus; the marketplace tolerates 30 seconds of staleness in exchange for instant navigation.</p>
+  <div class="tabs" id="policyTabs">
+    <div class="tabbar">
+      <button class="on" data-tab="p-market">market</button>
+      <button data-tab="p-customer">customer</button>
+      <button data-tab="p-admin">admin</button>
+    </div>
+    <div class="tabpanes">
+      <div class="on" id="p-market">
+        <div class="policy">
+          <div><div class="pv">30s</div><div class="pl">stale time</div></div>
+          <div><div class="pv">30min</div><div class="pl">GC time</div></div>
+          <div><div class="pv">Off</div><div class="pl">focus refetch</div></div>
+          <div class="pnote">Public catalog data changes slowly; long GC keeps prefetched pages warm across a whole browsing session.</div>
+        </div>
+        <div class="code"><div class="bar"><span class="path">apps/market-front/app/config/query.ts</span><button class="copy">COPY</button></div>
+<pre><code class="lang-ts">export const queryConfig = defineQueryConfig(() =&gt; ({
+  queryClient: new QueryClient({
+    defaultOptions: {
+      mutations: { retry: false },
+      queries: {
+        gcTime: 30 * 60_000,
+        refetchOnWindowFocus: false,
+        retry: 1,
+        staleTime: 30_000,
+      },
+    },
+  }),
+}))</code></pre></div>
+      </div>
+      <div id="p-customer">
+        <div class="policy">
+          <div><div class="pv">15s</div><div class="pl">stale time</div></div>
+          <div><div class="pv">15min</div><div class="pl">GC time</div></div>
+          <div><div class="pv">Off</div><div class="pl">focus refetch</div></div>
+          <div class="pnote">Seller workflows need reasonably fresh data without yanking editable state out from under the user.</div>
+        </div>
+      </div>
+      <div id="p-admin">
+        <div class="policy">
+          <div><div class="pv">5s</div><div class="pl">stale time</div></div>
+          <div><div class="pv">10min</div><div class="pl">GC time</div></div>
+          <div><div class="pv">On</div><div class="pl">focus refetch</div></div>
+          <div class="pnote">Back-office operators live in multiple tabs; switching back revalidates whatever they’re looking at.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= 04 GENERATED CLIENT ================= -->
+<section class="chapter" id="client">
+  <div class="ch-head"><span class="ch-num">04</span><h2>The generated client</h2></div>
+  <p class="ch-lede">Controllers stay plain TypeScript. The SDK turns them into a fully typed Query client — keys, options, calls and invalidation included.</p>
+
+  <h3 id="client-controllers"><span class="hnum">4.1</span>Classify, don’t rewrite</h3>
+  <p>The only thing a controller author declares is whether a method is a <code>query</code> or a <code>mutation</code>. Parameters and results are inferred from the methods themselves — no schema DSL, no codegen step, no duplicate type declarations.</p>
+  <div class="code"><div class="bar"><span class="path">packages/api-sdk/src/api/controller/item.controller.ts</span><button class="copy">COPY</button></div>
+<pre><code class="lang-ts">export const ItemController = createController((clientLoader) =&gt; {
+  const httpClient = clientLoader([...itemsApiSchema, ...searchApiSchema])
+  return {
+    queries: {
+      get(itemShortId: string) {
+        return httpClient.getItemById({ params: { itemShortId } })
+          .then((items) =&gt; items[0])
+          .then((item) =&gt; (item ? normalizeItem(item) : item))
+      },
+      search(params: z.infer&lt;typeof searchParamsDto&gt;) {
+        return httpClient.searchItems(params).then(normalizeSearchItemsResult)
+      },
+      searchFilters(params: z.infer&lt;typeof filtersSearchParamsDto&gt;) {
+        return httpClient.searchItemsFilters(params)
+      },
+    },
+    mutations: {
+      update({ itemShortId, item }: { itemShortId: string; item: UpdateItem }) {
+        return httpClient.updateItem(item, { params: { itemShortId } })
+          .then((res) =&gt; res?.[1]?.[0])
+      },
+    },
+  }
+})</code></pre></div>
+  <p>Note where <code>search</code> lives: search endpoints now belong to <b>the entity controller they return</b>. The former standalone search controller is gone — so item detail, item tables and item catalogs all share the same controller invalidation boundary for free.</p>
+
+  <h3 id="client-operations"><span class="hnum">4.2</span>Every operation, four capabilities</h3>
+  <div class="code"><div class="bar"><span class="path">generated — nothing here is hand-written</span><button class="copy">COPY</button></div>
+<pre><code class="lang-ts">// every query operation exposes:
+$client.items.get.call(itemShortId)                    // direct typed call
+$client.items.get.key()                                // operation prefix key
+$client.items.get.queryKey({ input: itemShortId })     // exact, data-tagged key
+$client.items.get.queryOptions({ input: itemShortId }) // plug into any Query API
+
+// every mutation operation exposes:
+$client.items.update.call({ itemShortId, item })  // call + auto-invalidation
+$client.items.update.mutationKey()
+$client.items.update.mutationOptions()            // plug into useMutation</code></pre></div>
+  <p>Input follows the controller signature instead of forcing everything into envelopes: no argument means no <code>input</code>, one argument passes directly, several pass as a tuple. Mutations take one variables object, so <code>useMutation</code> always sees a stable variables type.</p>
+
+  <h3 id="client-keys"><span class="hnum">4.3</span>Keys as a typed hierarchy</h3>
+  <p>Keys are generated, hierarchical and <b>data-tagged</b> — the cache knows what type lives at each key, so <code>getQueryData</code>, <code>setQueryData</code>, invalidation and prefetch all infer their data and error types.</p>
+  <div class="keytree">
+    <span class="kt"><span class="tok-s">['api']</span><span class="anno">← namespace &amp; collision boundary</span></span>
+    <span class="kt"><span class="lvl">&nbsp;&nbsp;</span><span class="tok-s">['api', 'items']</span><span class="anno">← invalidate a whole controller</span></span>
+    <span class="kt"><span class="lvl">&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="tok-s">['api', 'items', 'get']</span><span class="anno">← invalidate one operation</span></span>
+    <span class="kt"><span class="lvl">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="tok-s">['api', 'items', 'get', ['x7-3fq']]</span><span class="anno">← exact entry, typed as Item</span></span>
+  </div>
+  <p>Generated-client tests protect exact and partial keys, uniqueness across every controller operation, zero/one/multiple argument signatures, AbortSignal forwarding, result inference, mutation invalidation and invalidation opt-out — <b>497 tests across 46 files</b>.</p>
+
+  <h3 id="client-naming"><span class="hnum">4.4</span>One naming grammar</h3>
+  <p>Controller names carry the entity, so operations stay short and consistent across all three apps. Renames were atomic across controllers and consumers — an alias would give one request two cache identities.</p>
+  <table class="tbl">
+    <thead><tr><th>Intent</th><th>Convention</th><th>Example</th></tr></thead>
+    <tbody>
+      <tr><td>Primary detail</td><td><code>get</code></td><td><code>$client.organisations.get</code></td></tr>
+      <tr><td>Ordinary collection</td><td><code>list</code></td><td><code>$client.organisations.list</code></td></tr>
+      <tr><td>Full-text search</td><td><code>search</code></td><td><code>$client.items.search</code></td></tr>
+      <tr><td>Advanced DB query</td><td><code>query</code></td><td><code>$client.organisations.query</code></td></tr>
+      <tr><td>Base mutation</td><td><code>create</code> / <code>update</code> / <code>delete</code></td><td><code>$client.organisations.update</code></td></tr>
+      <tr><td>Alternate lookup</td><td><code>getByX</code></td><td><code>$client.organisations.getBySlug</code></td></tr>
+      <tr><td>Bulk mutation</td><td>verb + <code>Many</code></td><td><code>$client.items.updateMany</code></td></tr>
+      <tr><td>Domain command</td><td>semantic verb</td><td><code>$client.organisations.block</code></td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- ================= 05 MUTATIONS ================= -->
+<section class="chapter" id="mutations">
+  <div class="ch-head"><span class="ch-num">05</span><h2>Mutations &amp; invalidation</h2></div>
+  <p class="ch-lede">The end of “remember to refresh the table”. Mutations know which server state they touched — because the controller told them.</p>
+
+  <h3 id="mutations-paths"><span class="hnum">5.1</span>Two mutation paths</h3>
+  <p>Use <code>.call()</code> when a command only needs its result. Use <code>useMutation</code> when the component needs pending state, optimistic lifecycle hooks, serialization scope or local reconciliation:</p>
+  <div class="code"><div class="bar"><span class="path">customer-front · draft save, serialized per draft</span><button class="copy">COPY</button></div>
+<pre><code class="lang-ts">const { isPending: isSaving, mutateAsync: saveDraft } = useMutation(() =&gt;
+  $client.drafts.update.mutationOptions({
+    scope: { id: `draft-${itemShortId.value}` },
+    onSuccess(updated, variables) {
+      if (!updated) return
+      setItem((current) =&gt;
+        current &amp;&amp; isDirty(variables.item, current)
+          ? mergeObjects(updated, current)
+          : updated,
+      )
+    },
+  }),
+)</code></pre></div>
+
+  <h3 id="mutations-invalidation"><span class="hnum">5.2</span>Invalidation you never write</h3>
+  <p>Both paths invalidate active queries under their own controller after a successful mutation. Invalidations are <b>batched over a 16&nbsp;ms frame</b> and use <code>refetchType: 'active'</code> — mounted data refreshes, inactive entries just become stale. No background traffic storms.</p>
+  <div class="ba cols">
+    <div class="code before"><div class="bar"><span class="path"><span class="tag">BEFORE</span>manual refresh choreography</span></div>
+<pre><code class="lang-ts">const changed = await action()
+if (changed) tableApi.refresh()
+// ...and hope nothing else
+// was showing item data</code></pre></div>
+    <div class="code after"><div class="bar"><span class="path"><span class="tag">AFTER</span>the mutation knows</span></div>
+<pre><code class="lang-ts">await $client.items.performAction.call({
+  itemShortIds,
+  action: 'PUBLISH',
+})
+// mounted item tables, details and
+// catalogs refetch — automatically</code></pre></div>
+  </div>
+  <p>Because <code>search</code>, detail reads and supporting item queries all live under <code>items</code>, one publish command refreshes the mounted item table <i>and</i> any open detail observer — automatically. A controller can still opt out per mutation with <code>invalidates: { mutationName: false }</code> when refetching would be wrong.</p>
+
+  <h3 id="mutations-explicit"><span class="hnum">5.3</span>When explicit cache work is still right</h3>
+  <table class="tbl">
+    <thead><tr><th>Scenario</th><th>Pattern</th></tr></thead>
+    <tbody>
+      <tr><td>Same-controller mutation</td><td>Rely on generated invalidation</td></tr>
+      <tr><td>Immediate visible reconciliation</td><td><code>onSuccess</code>, writable query data, or the table API — in addition</td></tr>
+      <tr><td>Cross-controller effect</td><td>Explicitly invalidate via <code>useQueryClient()</code></td></tr>
+      <tr><td>Raw <code>$api</code> command</td><td>Handle cache effects yourself — raw transport is intentionally inert</td></tr>
+      <tr><td>External event (PubNub)</td><td>Patch the exact query through its <code>setData</code> helper</td></tr>
+    </tbody>
+  </table>
+</section>
+<!-- ================= 06 PATTERNS ================= -->
+<section class="chapter" id="patterns">
+  <div class="ch-head"><span class="ch-num">06</span><h2>Application patterns</h2></div>
+  <p class="ch-lede">One shared <code>useQuery</code>, auto-imported everywhere. Native TanStack observer underneath, plus exactly the sugar that made the old composables useful — and nothing more.</p>
+
+  <h3 id="patterns-usequery"><span class="hnum">6.1</span>useQuery, the app-facing API</h3>
+  <div class="ba">
+    <div class="code before"><div class="bar"><span class="path"><span class="tag">BEFORE</span>useAsyncState — uncached, per-component</span></div>
+<pre><code class="lang-ts">const { data: addresses, pending, refresh } = useAsyncState(
+  () =&gt; $api.addresses.getAddresses(userStore.organisationShortId),
+  { default: [] },
+)</code></pre></div>
+    <div class="code after"><div class="bar"><span class="path"><span class="tag">AFTER</span>shared, cached, cancellable, deduplicated</span></div>
+<pre><code class="lang-ts">const { data: addresses, isLoading: pending, refetch: refresh } = useQuery(
+  () =&gt; $client.addresses.list.queryOptions({
+    input: userStore.organisationShortId,
+  }),
+  { defaultValue: [] },
+)</code></pre></div>
+  </div>
+  <p><code>defaultValue</code> kills the fallback computeds, native <code>enabled</code> handles conditions, and native <code>select</code> keeps derivation with the query that owns it. What used to take a query variable plus two extra computeds is now one declaration:</p>
+  <div class="code"><div class="bar"><span class="path">customer-front · active contracts for the current shop</span><button class="copy">COPY</button></div>
+<pre><code class="lang-ts">const { data: contracts, isLoading: loadingContracts } = useQuery(
+  () =&gt; $client.contracts.list.queryOptions({
+    enabled: Boolean(organisationShortId.value),
+    input: organisationShortId.value,
+    select: (loaded) =&gt; loaded.filter((contract) =&gt;
+      contract.indexedMeta?.status === 'ACTIVE' &amp;&amp;
+      contract.shopShortIds.includes(shopStore.currentShopId),
+    ),
+  }),
+  { defaultValue: [] },
+)</code></pre></div>
+
+  <h3 id="patterns-writable"><span class="hnum">6.2</span>Writable query data</h3>
+  <p>When <code>select</code> preserves the result shape, <code>data</code> becomes a writable model over the cache — with exact-key helpers that always resolve the current reactive key. This replaced hand-written computed setters and repeated <code>setQueryData</code> plumbing across all three apps.</p>
+  <div class="code"><div class="bar"><span class="path">customer-front · session store</span><button class="copy">COPY</button></div>
+<pre><code class="lang-ts">const { data: user, patchData: patchUser, clearData: clearUser } = useQuery(
+  () =&gt; $client.auth.loggedUser.queryOptions({
+    enabled: Boolean(beaconToken.value),
+  }),
+  { defaultValue: null },
+)
+
+user.value = updatedUser        // writes through to the cache
+patchUser({ firstName: 'Ada' }) // deep-partial patch, typed
+clearUser()                     // removes the exact entry</code></pre></div>
+  <p>If <code>select</code> changes the shape, <code>data</code> is readonly — writing a selected shape into a cache holding the raw shape would be unsafe, and the type system enforces that.</p>
+
+  <h3 id="patterns-effects"><span class="hnum">6.3</span>Query-local effects</h3>
+  <p><code>onData</code> and <code>onError</code> replace the watchers whose only job was reacting to one query — navigation guards, emits, form prefills. They observe hydration, background updates and local cache writes through the same observer.</p>
+  <div class="code"><div class="bar"><span class="path">customer-front · draft page guard</span><button class="copy">COPY</button></div>
+<pre><code class="lang-ts">const { data: item } = useQuery(
+  () =&gt; $client.drafts.get.queryOptions({ input: itemShortId.value }),
+  {
+    defaultValue: null,
+    onData(item) {
+      if (!includes(item.status, ['DRAFT', 'TO_MODIFY']))
+        return navigateTo({ name: 'seller-drafts' })
+    },
+    onError: () =&gt; showError({ statusCode: 404 }),
+  },
+)</code></pre></div>
+
+  <h3 id="patterns-pagecontext"><span class="hnum">6.4</span>Query-owned page context</h3>
+  <p>Route-shell data — breadcrumb entities, page titles — used to be mirrored into context by watchers. Now the query that owns the data <b>is</b> the context: <code>pageContext: true</code> binds the result to the route, a string contributes a named value, a selector exposes only what the shell needs.</p>
+  <div class="code"><div class="bar"><span class="path">market-front · composing one context from several owners</span><button class="copy">COPY</button></div>
+<pre><code class="lang-ts">const { data: seller } = useQuery(
+  () =&gt; $client.organisations.getBySlug.queryOptions({ input: sellerSlug.value }),
+  { pageContext: 'seller' },
+)
+
+const prismic = usePrismicContent()
+const { data: document } = useQuery(prismic.byUidQueryOptions('page', uid.value), {
+  pageContext: (doc) =&gt; ({ title: asText(doc.data.title) }),
+})</code></pre></div>
+  <p>The binding updates synchronously from the observer, so SSR hydration, prefetched cache data, normal fetches and later cache writes all flow through one path. Server-rendered dynamic breadcrumbs come from the same mechanism — no second data-loading abstraction.</p>
+
+  <h3 id="patterns-stores"><span class="hnum">6.5</span>Stores stop mirroring</h3>
+  <p>Remote values live in the Query cache, full stop. Pinia stores keep what they’re actually for — business derivation, session orchestration, access helpers — and write through the query result instead of synchronizing a second ref. User, active organisation, contracts, shop, categories, reference data: all cached server values now, zero watchers keeping copies aligned.</p>
+</section>
+
+<!-- ================= 07 SPEED ================= -->
+<section class="chapter" id="speed">
+  <div class="ch-head"><span class="ch-num">07</span><h2>market-front, the speed run</h2></div>
+  <p class="ch-lede">The marketplace is the performance-critical surface, and it got a dedicated treatment: one cache from server to client, and a prefetch pipeline that makes navigation feel ridiculous.</p>
+
+  <h3 id="speed-ssr"><span class="hnum">7.1</span>One cache, server to client</h3>
+  <p>Every SSR request gets a fresh QueryClient. After rendering, the runtime dehydrates it into the payload; the browser hydrates the same cache before any observer runs. The client <b>never refetches what the server already loaded</b> — and SEO metadata, structured data, canonical URLs and breadcrumbs derive from those same hydrated values instead of running a parallel content path.</p>
+  <div class="code"><div class="bar"><span class="path">packages/shared-business/app/plugins/api-client.ts</span><button class="copy">COPY</button></div>
+<pre><code class="lang-ts">const { queryClient, pluginOptions } = await app.runWithContext(() =&gt; queryConfig({ client }))
+bindQueryClient(queryClient)
+
+app.vueApp.use(VueQueryPlugin, { ...pluginOptions, queryClient })
+
+if (import.meta.server)
+  app.hook('app:rendered', () =&gt; {
+    queryState.value = dehydrate(queryClient)
+  })
+
+if (import.meta.client &amp;&amp; queryState.value) hydrate(queryClient, queryState.value)</code></pre></div>
+  <p>Prismic follows the same model — <code>singleQueryOptions</code>, <code>firstByTypeQueryOptions</code> and <code>byUidQueryOptions</code> carry the active language in their keys, so pages and prefetching always address the same cache entry. Item detail renders its cached primary entity immediately and lets secondary data resolve progressively; PubNub live updates patch the query result directly instead of maintaining a parallel copy.</p>
+
+  <h3 id="speed-prefetch"><span class="hnum">7.2</span>defineQueryPrefetch — data declared beside the route</h3>
+  <p>Pages declare their navigation-critical data with a macro. The route name is checked against Vue Router’s generated <code>RouteMap</code>, so <code>route.params</code> is <b>inferred for that exact page</b>. A build transform attaches the declaration to route metadata — consumers never call <code>prefetchQuery</code> themselves.</p>
+  <div class="code"><div class="bar"><span class="path">apps/market-front/app/pages/item/[itemShortId].vue</span><button class="copy">COPY</button></div>
+<pre><code class="lang-ts">defineQueryPrefetch('item-itemShortId', ({ client, route }) =&gt; [
+  client.items.getFull.queryOptions({ input: route.params.itemShortId }),
+  client.characteristics.list.queryOptions(),
+])</code></pre></div>
+  <p>One shared <code>prefetchPage(to)</code> entry point preloads the destination component <i>and</i> runs its data declaration through the existing QueryClient. NuxtLink’s native <code>link:prefetch</code> hook calls it automatically on hover or focus; non-link interactions call it directly — the header search bar warms the search page the moment you focus the input:</p>
+  <div class="code"><div class="bar"><span class="path">apps/market-front/app/components/layout/AppHeader.vue</span><button class="copy">COPY</button></div>
+<pre><code class="lang-ts">function prefetchSearchPage() {
+  return prefetchPage({ path: localePath({ path: '/search' }) })
+}</code></pre></div>
+  <p>Matching work is deduplicated by Query key and destination <code>fullPath</code>. And because the destination page uses the <b>same generated query options</b>, navigation stays correct when a prefetch never fires — it just falls back to a normal fetch.</p>
+
+  <h3 id="speed-catalog"><span class="hnum">7.3</span>The catalog prefetch compiler</h3>
+  <p>Catalog pages are the hard case: rows depend on route filters, facets, sorting, pagination and context queries. The catalog now exposes a first-class prefetch compiler — <code>prefetchCatalog</code> reads the destination query string and the schema’s defaults, then executes a staged plan: context queries resolve first, then the compiler derives the <b>exact</b> request and warms rows, facets and query-backed filter options.</p>
+  <div class="code"><div class="bar"><span class="path">apps/market-front/app/pages/category/[categoryShortId].vue</span><button class="copy">COPY</button></div>
+<pre><code class="lang-ts">defineQueryPrefetch('category-categoryShortId', ({ client, route }) =&gt; [
+  client.categories.get.queryOptions({ input: [route.params.categoryShortId] }),
+  prefetchCatalog({
+    route,
+    schema: itemCatalogSchema({ categoryShortIds: [route.params.categoryShortId] }),
+  }),
+])</code></pre></div>
+  <p>The mounted catalog uses <b>those same resolver functions</b> — prefetch and rendering cannot drift into different keys or payloads. Staged plans run through <code>ensureQueryData({ revalidateIfStale: true })</code>: cached destinations render immediately while stale values refresh behind them.</p>
+
+  <h3 id="speed-policies"><span class="hnum">7.4</span>Prefetch policies, per link</h3>
+  <p>NuxtLink stays the policy surface, so each link decides when its route’s declaration runs:</p>
+  <div class="code"><div class="bar"><span class="path">market-front · the three policies</span><button class="copy">COPY</button></div>
+<pre><code class="lang-html">&lt;!-- default: prefetch on pointer/focus interaction --&gt;
+&lt;NuxtLink :to="itemUrl" /&gt;
+
+&lt;!-- small, high-value rails: prefetch as cards enter the viewport --&gt;
+&lt;ItemCard :item="item" prefetch-on="visibility" /&gt;
+
+&lt;!-- explicit opt-out where speculation isn't useful --&gt;
+&lt;NuxtLink :to="target" no-prefetch /&gt;</code></pre></div>
+  <ul>
+    <li><b>Item destinations</b> prefetch their primary detail; category, seller, auction, search and catalog destinations prefetch the exact catalog plan derived from the destination route.</li>
+    <li><b>Editorial destinations</b> (landing, FAQ, support, become-seller) prefetch their locale-aware Prismic documents.</li>
+    <li><b>Featured and related item rails</b> use viewport prefetching; dense catalogs keep interaction policy to avoid fetching every visible result.</li>
+    <li>A successful prefetch <b>only warms the cache</b> — no page mount, no observer. If it misses, the page fetches normally.</li>
+  </ul>
+
+  <h3 id="speed-demo"><span class="hnum">7.5</span>Try it: hover to warm</h3>
+  <p>This is a simulation of the real pipeline — <code>link:prefetch</code> → <code>prefetchPage()</code> → QueryClient. Hover the card, watch the cache warm, then navigate. Then reset and navigate <i>cold</i> to feel the difference.</p>
+  <div class="demo" id="demo">
+    <div class="dhead"><span class="t">Simulation · <em>NuxtLink → prefetchPage → QueryClient</em></span><span class="t" id="cacheState">cache: <em>cold</em></span></div>
+    <div class="dbody">
+      <div class="stage">
+        <div class="mockcard" id="mockCard">
+          <div class="img"></div>
+          <div class="mc">
+            <div class="mt">Chargeuse compacte Bobcat S570</div>
+            <div class="mm">/item/x7-3fq · Lyon (69)</div>
+            <div class="mp">12 400 €</div>
+          </div>
+        </div>
+        <div class="hint" id="demoHint">→ hover the card, like a real visitor would</div>
+        <div class="actions">
+          <button id="navBtn">Navigate →</button>
+          <button id="resetBtn">Reset</button>
+        </div>
+      </div>
+      <div class="console" id="demoConsole">
+        <div class="cl dim">// waiting for interaction…</div>
+      </div>
+    </div>
+  </div>
+
+  <h3 id="speed-longtail"><span class="hnum">7.6</span>The long tail</h3>
+  <p>The migration exposed rendering costs the old blocking loaders used to hide — so the perf pass went deep:</p>
+  <ul>
+    <li><b>Stable row references</b> — table cells don’t rerender for observer-only state changes; <code>rowKey</code> supplies identity directly.</li>
+    <li><b>Shallow ownership</b> for row payloads and Query observers where deep proxies add nothing.</li>
+    <li><b>Cache-aware <code>suspense()</code></b> — blocks only a cold navigation; revisiting prefetched pages costs zero round trips.</li>
+    <li><b>Deferred hydration</b> — menus, footer and lower-page Prismic slices hydrate after the critical shell.</li>
+    <li><b>Responsive hero images</b> — the browser picks the right source instead of downloading desktop assets on mobile.</li>
+    <li><b>Debounced search + cancellation</b> — page reset happens before key derivation, so no intermediate request for the previous page with new filters.</li>
+    <li><b>Lazy wizard steps</b> — form schemas and their option observers mount on first visit, not at wizard creation.</li>
+    <li><b>Prebundled sanitizer</b> — removes first-use stalls; grid rendering stays virtualized.</li>
+  </ul>
+</section>
+
+<!-- ================= 08 SURFACES ================= -->
+<section class="chapter" id="surfaces">
+  <div class="ch-head"><span class="ch-num">08</span><h2>Tables, forms &amp; drafts</h2></div>
+  <p class="ch-lede">Customer and admin got the same engine upgrade: schemas declare where data comes from, the engine owns everything else.</p>
+
+  <h3 id="surfaces-datalist"><span class="hnum">8.1</span>DataList: declarative sources</h3>
+  <p>A table schema declares its source; the engine owns Query observation, cancellation, route state, pagination, sorting, filter payloads and loading semantics. Two modes exist because the product uses two — the untested generic adapter was deleted, not preserved.</p>
+  <div class="ba cols">
+    <div class="code"><div class="bar"><span class="path">remote / Elasticsearch rows</span></div>
+<pre><code class="lang-ts">source: defineTableSource({
+  mode: 'remote',
+  query: ({ payload }) =&gt;
+    $client.items.search.queryOptions({
+      input: payload,
+    }),
+})</code></pre></div>
+    <div class="code"><div class="bar"><span class="path">client-side rows</span></div>
+<pre><code class="lang-ts">source: {
+  mode: 'client',
+  query: () =&gt;
+    $client.addresses.list.queryOptions({
+      input: organisationShortId,
+    }),
+}</code></pre></div>
+  </div>
+  <p>Catalog uses the same model with marketplace extras — independently cacheable rows and facets, previous nonzero facets preserved during background validation, and route-scoped query writers that stop writing the moment navigation leaves the owning route.</p>
+
+  <h3 id="surfaces-loading"><span class="hnum">8.2</span>Loading vs refreshing</h3>
+  <table class="tbl">
+    <thead><tr><th>State</th><th>Data visible</th><th>Treatment</th></tr></thead>
+    <tbody>
+      <tr><td>Initial request, no usable data</td><td>No</td><td>Existing blocking skeleton / spinner</td></tr>
+      <tr><td>Background validation with cached data</td><td>Yes</td><td>Non-blocking secondary indicator</td></tr>
+      <tr><td>Table background validation</td><td>Rows stay interactive</td><td>Thin progress bar that advances, completes, fades</td></tr>
+      <tr><td>Grid background validation</td><td>Cards stay interactive</td><td>Compact floating spinner</td></tr>
+      <tr><td>Catalog background validation</td><td>Cards stay interactive</td><td>Compact floating spinner above the grid</td></tr>
+    </tbody>
+  </table>
+  <p>Refresh button, filter changes, sorting, pagination, action-triggered invalidation and focus validation all share the same <code>isFetching</code> state. The engine also preserves prior rows during key changes — no more content disappearing behind a loader.</p>
+
+  <h3 id="surfaces-forms"><span class="hnum">8.3</span>Form options are queries now</h3>
+  <p>Remote select options return Query options, so the form engine understands dependencies, loading, cancellation, caching and refresh — without every field reimplementing those concerns.</p>
+  <div class="ba">
+    <div class="code before"><div class="bar"><span class="path"><span class="tag">BEFORE</span>ad hoc async, refetch on any dependency</span></div>
+<pre><code class="lang-ts">options: async ({ deps }) =&gt; {
+  if (!deps.manufacturerShortId) return []
+  return $api.models.getModels({ manufacturerShortId: deps.manufacturerShortId })
+}</code></pre></div>
+    <div class="code after"><div class="bar"><span class="path"><span class="tag">AFTER</span>declarative — refreshOn picks what reloads</span></div>
+<pre><code class="lang-ts">options: {
+  refreshOn: ['manufacturerShortId'],
+  source: ({ deps }) =&gt;
+    $client.models.list.queryOptions({
+      enabled: Boolean(deps.manufacturerShortId),
+      input: { manufacturerShortId: deps.manufacturerShortId },
+      select: (models) =&gt;
+        models.map(({ modelShortId: value, name: label }) =&gt; ({ value, label })),
+    }),
+  externalDependencies: [$i18n.locale],
+}</code></pre></div>
+  </div>
+  <p>In the draft form, changing the category can enable or disable manufacturer and model fields <b>without discarding their options</b>; changing the manufacturer reloads models. Obsolete option requests get cancelled, previous options stay visible while the next set loads, invalid selections are removed after the authoritative set arrives, and fields sharing a generated key share the cached data.</p>
+
+  <h3 id="surfaces-drafts"><span class="hnum">8.4</span>The draft editor &amp; autosave</h3>
+  <p>The writable query is the canonical editable draft. Autosave snapshots it, the save mutation serializes per draft via <code>scope</code>, and successful responses merge without overwriting edits made while the request was in flight. Focus and reconnect refetch are disabled during editing, and <code>useAutoSave</code> now schedules a <b>trailing save</b> when you edit during an in-flight request — the last local change can’t be lost.</p>
+</section>
+
+<!-- ================= 09 UNLOCKS ================= -->
+<section class="chapter" id="unlocks">
+  <div class="ch-head"><span class="ch-num">09</span><h2>What this unlocks</h2></div>
+  <p class="ch-lede">The migration pays for itself today. But the reason it’s shaped this way is what comes next.</p>
+
+  <h3 id="unlocks-inventory"><span class="hnum">9.1</span>Agorastock: the inventory app, offline-ready by design</h3>
+  <p>The next product is a warehouse inventory app — used on the floor, on flaky networks. Before this PR, that meant building a bespoke offline stack. Now server state lives in one QueryClient behind one typed client, and TanStack Query’s persistence and network-mode capabilities plug in <b>as app-level configuration</b>, exactly like each app already configures stale time and GC today.</p>
+  <div class="wins">
+    <div class="win"><div class="wk">Offline</div><div class="wt">Persistence is a config decision</div><p>The architecture leaves QueryClient persistence open per app — cache to storage, restore on launch, no new data layer.</p></div>
+    <div class="win"><div class="wk">Network mode</div><div class="wt">Flaky Wi-Fi, handled</div><p>Query’s network-mode semantics — pause, resume, retry — apply to every generated operation for free.</p></div>
+    <div class="win"><div class="wk">Reuse</div><div class="wt">The draft engine comes along</div><p>Writable query data, serialized mutations and trailing autosave are the exact primitives an inventory workflow needs. No re-implementation.</p></div>
+    <div class="win"><div class="wk">Day one</div><div class="wt">Forms, tables, actions: free</div><p>DataList, FormRenderer and the generated client are app-agnostic. A fourth app starts from the full toolkit.</p></div>
+  </div>
+  <p class="note"><b>Scope honesty:</b> offline persistence is deliberately <i>not</i> implemented in this PR. The point is that it no longer requires an architecture change — only configuration and app-specific policy.</p>
+
+  <h3 id="unlocks-paths"><span class="hnum">9.2</span>The paths now open</h3>
+  <ul>
+    <li><b>Optimistic updates, selectively</b> — the plumbing exists; if the backend converges list and detail on one canonical entity shape, normalized optimistic updates become straightforward.</li>
+    <li><b>Cross-controller invalidation graph</b> — explicit today by design; the key hierarchy is ready if a declarative graph ever earns its complexity.</li>
+    <li><b>Observability for free</b> — Query devtools are mounted through shared AppRoot in development, resolving the real application cache.</li>
+    <li><b>Per-app tuning forever</b> — freshness, retries and focus behavior are one config file per app, not a rewrite.</li>
+  </ul>
+</section>
+
+<!-- ================= 10 PROOF ================= -->
+<section class="chapter" id="proof">
+  <div class="ch-head"><span class="ch-num">10</span><h2>Shipping &amp; proof</h2></div>
+  <p class="ch-lede">A migration this size doesn’t get to be “probably fine”. It was validated layer by layer, app by app, in the browser.</p>
+
+  <h3 id="proof-validation"><span class="hnum">10.1</span>Validation</h3>
+  <ul>
+    <li>Repository lint and format check</li>
+    <li><b>api-sdk: 497 tests across 46 files</b> — keys, inference, signals, metadata, invalidation and opt-out</li>
+    <li>shared-ui suites: query observer, DataList, catalog prefetch, facets, form options</li>
+    <li>shared-business suites: Query runtime, route-prefetch transform, shop cache hydration</li>
+    <li>Production builds for all three apps</li>
+    <li><b>Browser verification</b> — customer: session, tables, filters, sorting, pagination, refresh indicators, drafts · market: catalogs, facets, item detail, route behavior · admin: migrated entity screens</li>
+  </ul>
+
+  <h3 id="proof-deploy"><span class="hnum">10.2</span>CI &amp; deployments</h3>
+  <p>The final CI run is green across dependency policy, formatting, package builds, lint, typechecks, tests and production images. Everything is live on Integration and UAT — production deliberately waits for review.</p>
+  <table class="tbl">
+    <thead><tr><th>Application</th><th>Image</th><th>Integration</th><th>UAT</th></tr></thead>
+    <tbody>
+      <tr><td>customer-front</td><td><code>v278</code></td><td class="ok">Deployed</td><td class="ok">Deployed</td></tr>
+      <tr><td>market-front</td><td><code>v269</code></td><td class="ok">Deployed</td><td class="ok">Deployed</td></tr>
+      <tr><td>admin-front</td><td><code>v287</code></td><td class="ok">Deployed</td><td class="ok">Deployed</td></tr>
+    </tbody>
+  </table>
+
+  <h3 id="proof-review"><span class="hnum">10.3</span>How to review 99 commits</h3>
+  <p>The commits are granular on purpose. The contract layers come first — every consumer depends on them:</p>
+  <ul>
+    <li><b>1 · api-sdk</b> — controller classification, key hierarchy, inference, signal forwarding, invalidation</li>
+    <li><b>2 · shared-business runtime</b> — per-app config, client provision, SSR dehydrate/hydrate, cancellation</li>
+    <li><b>3 · shared-ui query API</b> — writable data, defaults, effects, selected-data safety</li>
+    <li><b>4 · shared-ui abstractions</b> — DataList, catalog, form options, loading semantics</li>
+    <li><b>5 · customer-front</b> — the reference implementation for stores, drafts, forms and tables</li>
+    <li><b>6 · market-front</b> — SSR, facets, hydration, page context, prefetch policies</li>
+    <li><b>7 · admin-front</b> — same patterns, no separate admin model</li>
+    <li><b>8 · skills &amp; tests</b> — the contracts future changes are expected to follow</li>
+  </ul>
+
+  <h3 id="proof-boundaries"><span class="hnum">10.4</span>Deliberate boundaries</h3>
+  <p>Just as important as what changed is what didn’t:</p>
+  <ul>
+    <li><b>Nuxt stays.</b> Smart prefetching composes Nuxt’s own route and component preload lifecycle — no framework change.</li>
+    <li><b>Controllers stay plain TypeScript.</b> No RPC declaration DSL; changing the authoring model didn’t earn its migration cost.</li>
+    <li><b>Pinia stays</b> for business state and orchestration; Query owns server state.</li>
+    <li><b>Cross-controller invalidation stays explicit.</b> Automatic same-controller invalidation covers the dominant case without a second dependency graph.</li>
+    <li><b>Offline is deferred, not blocked.</b> The architecture leaves persistence open as app configuration.</li>
+  </ul>
+
+  <footer>
+    <span>The server-state rewrite · tars-monorepo</span>
+    <span class="fm"><a href="https://github.com/agorastore/tars-monorepo/pull/137">PR #137</a> · refactor/tanstack-query-migration · July 2026</span>
+  </footer>
+</section>
+
+</div>
+</main>
+</div>
+<script>
+(function(){
+'use strict'
+
+/* ---------- syntax highlighting ---------- */
+var TS_RE = /(\/\/[^\n]*|\/\*[\s\S]*?\*\/)|(`(?:\\.|[^`\\])*`|'(?:\\.|[^'\\\n])*'|"(?:\\.|[^"\\\n])*")|\b(const|let|var|function|return|await|async|import|from|export|type|interface|extends|new|if|else|throw|for|of|in|typeof|keyof|readonly|as|satisfies|default|class|void|null|undefined|true|false|this)\b|\b(\d[\d_]*(?:\.\d+)?)\b|([A-Za-z_$][\w$]*)(?=\s*\()|\b([A-Z][A-Za-z0-9_]+)\b/g
+var CLASSES = ['tok-c','tok-s','tok-k','tok-n','tok-f','tok-t']
+
+function esc(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+
+function highlightTS(src){
+  var out='', last=0, m
+  TS_RE.lastIndex=0
+  while((m=TS_RE.exec(src))){
+    out+=esc(src.slice(last,m.index))
+    var cls=null
+    for(var g=1;g<=6;g++) if(m[g]!==undefined){cls=CLASSES[g-1];break}
+    out+='<span class="'+cls+'">'+esc(m[0])+'</span>'
+    last=m.index+m[0].length
+  }
+  return out+esc(src.slice(last))
+}
+
+function highlightHTML(src){
+  return esc(src)
+    .replace(/(&lt;!--[\s\S]*?--&gt;)/g,'<span class="tok-c">$1</span>')
+    .replace(/(&lt;\/?)([\w-]+)/g,'$1<span class="tok-tag">$2</span>')
+    .replace(/([:@]?[\w-]+(?:-on)?)=(&quot;[^&]*?&quot;)/g,'<span class="tok-attr">$1</span>=<span class="tok-s">$2</span>')
+    .replace(/\s(no-prefetch|prefetch-on=&quot;[^&]*?&quot;)/g,' <span class="tok-attr">$1</span>')
+}
+
+document.querySelectorAll('pre code').forEach(function(block){
+  var src=block.textContent
+  block.innerHTML=block.className.indexOf('lang-html')>-1?highlightHTML(src):highlightTS(src)
+})
+
+/* ---------- copy buttons ---------- */
+document.querySelectorAll('.code .copy').forEach(function(btn){
+  btn.addEventListener('click',function(){
+    var pre=btn.closest('.code').querySelector('pre code')
+    navigator.clipboard.writeText(pre.textContent).then(function(){
+      btn.textContent='COPIED'
+      setTimeout(function(){btn.textContent='COPY'},1400)
+    })
+  })
+})
+
+/* ---------- progress bar ---------- */
+var progress=document.getElementById('progress')
+function onScroll(){
+  var h=document.documentElement
+  var p=h.scrollTop/(h.scrollHeight-h.clientHeight)
+  progress.style.width=(p*100).toFixed(2)+'%'
+}
+addEventListener('scroll',onScroll,{passive:true});onScroll()
+
+/* ---------- scroll spy ---------- */
+var tocLinks=[].slice.call(document.querySelectorAll('#toc a'))
+var targets=tocLinks.map(function(a){return document.getElementById(a.getAttribute('href').slice(1))}).filter(Boolean)
+var ticking=false
+function spy(){
+  ticking=false
+  var line=innerHeight*0.28, current=null
+  for(var i=0;i<targets.length;i++){
+    if(targets[i].getBoundingClientRect().top<=line) current=targets[i]
+  }
+  tocLinks.forEach(function(a){a.classList.remove('on')})
+  document.querySelectorAll('#toc li.open').forEach(function(li){li.classList.remove('open')})
+  if(!current) return
+  var active=document.querySelector('#toc a[href="#'+current.id+'"]')
+  if(!active) return
+  active.classList.add('on')
+  var li=active.closest('#toc > ol > li')||active.closest('li')
+  var topLi=active.parentElement
+  while(topLi && topLi.parentElement && topLi.parentElement.id!=='toc'){
+    if(topLi.tagName==='LI' && topLi.parentElement.classList.contains('sub')===false) break
+    topLi=topLi.parentElement
+  }
+  var rootLi=active.closest('.toc > ol > li')
+  if(rootLi){
+    rootLi.classList.add('open')
+    var rootA=rootLi.querySelector(':scope > a')
+    if(rootA && rootA!==active) rootA.classList.add('on')
+  }
+}
+addEventListener('scroll',function(){if(!ticking){ticking=true;requestAnimationFrame(spy)}},{passive:true})
+spy()
+
+/* ---------- reveal + counters + rings ---------- */
+document.querySelectorAll('.chapter h3, .code, .tbl, .wins, .pull, .diagram, .keytree, .ba, .demo').forEach(function(el){el.classList.add('rv')})
+var io=new IntersectionObserver(function(entries){
+  entries.forEach(function(e){
+    if(!e.isIntersecting) return
+    e.target.classList.add('in')
+    if(e.target.classList.contains('lh')){
+      e.target.querySelectorAll('.arc').forEach(function(c){
+        var score=+c.getAttribute('data-score')
+        c.style.strokeDashoffset=(213.6*(1-score/100)).toFixed(1)
+      })
+    }
+    io.unobserve(e.target)
+  })
+},{threshold:.15})
+document.querySelectorAll('.rv').forEach(function(el){io.observe(el)})
+
+var cio=new IntersectionObserver(function(entries){
+  entries.forEach(function(e){
+    if(!e.isIntersecting) return
+    var el=e.target, end=+el.getAttribute('data-count'), t0=null
+    function step(t){
+      if(!t0)t0=t
+      var p=Math.min((t-t0)/900,1)
+      p=1-Math.pow(1-p,4)
+      el.textContent=Math.round(end*p).toLocaleString('en-US')
+      if(p<1)requestAnimationFrame(step)
+    }
+    requestAnimationFrame(step)
+    cio.unobserve(el)
+  })
+},{threshold:.6})
+document.querySelectorAll('[data-count]').forEach(function(el){cio.observe(el)})
+
+/* ---------- tabs ---------- */
+document.querySelectorAll('.tabs').forEach(function(tabs){
+  var btns=tabs.querySelectorAll('.tabbar button')
+  btns.forEach(function(btn){
+    btn.addEventListener('click',function(){
+      btns.forEach(function(b){b.classList.remove('on')})
+      tabs.querySelectorAll('.tabpanes > div').forEach(function(p){p.classList.remove('on')})
+      btn.classList.add('on')
+      document.getElementById(btn.getAttribute('data-tab')).classList.add('on')
+    })
+  })
+})
+
+/* ---------- mobile toc ---------- */
+var tocBtn=document.getElementById('tocBtn'),overlay=document.getElementById('tocOverlay')
+document.getElementById('tocMobile').innerHTML='<div class="toc" style="max-width:420px;margin:0 auto">'+document.getElementById('toc').innerHTML+'</div>'
+document.getElementById('tocMobile').querySelectorAll('.sub').forEach(function(s){s.style.maxHeight='none'})
+tocBtn.addEventListener('click',function(){overlay.classList.add('show')})
+document.getElementById('tocClose').addEventListener('click',function(){overlay.classList.remove('show')})
+overlay.addEventListener('click',function(e){if(e.target.tagName==='A')overlay.classList.remove('show')})
+
+/* ---------- prefetch demo ---------- */
+var demo={warmed:false,warming:false,navigating:false,hoverNote:0}
+var card=document.getElementById('mockCard')
+var consoleEl=document.getElementById('demoConsole')
+var cacheState=document.getElementById('cacheState')
+var hint=document.getElementById('demoHint')
+var navBtn=document.getElementById('navBtn')
+var resetBtn=document.getElementById('resetBtn')
+
+function log(html,delay){
+  return new Promise(function(res){
+    setTimeout(function(){
+      var line=document.createElement('div')
+      line.className='cl'
+      line.innerHTML=html
+      consoleEl.appendChild(line)
+      consoleEl.scrollTop=consoleEl.scrollHeight
+      res()
+    },delay||0)
+  })
+}
+function clearConsole(){consoleEl.innerHTML=''}
+
+function warm(){
+  if(demo.warmed||demo.warming)return notewarm()
+  demo.warming=true
+  clearConsole()
+  log('<span class="t0">00ms</span>  <span class="blue">pointerover</span> → NuxtLink <span class="dim">link:prefetch</span>')
+  .then(function(){return log('<span class="t0">04ms</span>  prefetchPage(<span class="tok-s">\'/item/x7-3fq\'</span>) <span class="dim">— route meta: item-itemShortId</span>',180)})
+  .then(function(){return log('<span class="t0">09ms</span>  component chunk preload <span class="ok">✓</span>',220)})
+  .then(function(){return log('<span class="t0">12ms</span>  GET items.getFull <span class="dim">[\'api\',\'items\',\'getFull\',[\'x7-3fq\']]</span>',160)})
+  .then(function(){return log('<span class="t0">12ms</span>  GET characteristics.list <span class="dim">[\'api\',\'characteristics\',\'list\',[]]</span>',140)})
+  .then(function(){return log('<span class="t0">148ms</span> items.getFull <span class="ok">✓ cached</span>',420)})
+  .then(function(){return log('<span class="t0">201ms</span> characteristics.list <span class="ok">✓ cached</span>',180)})
+  .then(function(){return log('<span class="warmc">cache warm — navigation will render instantly</span>',260)})
+  .then(function(){
+    demo.warming=false;demo.warmed=true
+    card.classList.add('warm')
+    cacheState.innerHTML='cache: <em>warm</em>'
+    hint.textContent='→ now navigate'
+  })
+}
+function notewarm(){
+  if(!demo.warmed||demo.navigating)return
+  var now=Date.now()
+  if(now-demo.hoverNote<2500)return
+  demo.hoverNote=now
+  log('<span class="dim">hover again → already warm, deduplicated by fullPath</span>')
+}
+card.addEventListener('pointerenter',warm)
+card.addEventListener('click',warm)
+
+function navigate(){
+  if(demo.navigating)return
+  demo.navigating=true
+  var old=consoleEl.querySelector('.result');if(old)old.remove()
+  var oldSkel=consoleEl.querySelector('.skel');if(oldSkel)oldSkel.remove()
+  if(demo.warmed){
+    log('<span class="t0">00ms</span>  <span class="blue">navigate</span> → /item/x7-3fq')
+    .then(function(){return log('<span class="t0">01ms</span>  useQuery(items.getFull) → <span class="ok">cache hit</span>',120)})
+    .then(function(){return log('<span class="t0">02ms</span>  page rendered <span class="dim">— stale-while-revalidate in background</span>',120)})
+    .then(function(){
+      var r=document.createElement('div')
+      r.className='result cache show'
+      r.innerHTML='<div class="rt">Rendered from cache.</div><div class="rd">0 blocking network requests · data was ready before the click<br>this is every prefetched navigation on agorastore.fr now</div>'
+      consoleEl.appendChild(r)
+      consoleEl.scrollTop=consoleEl.scrollHeight
+      demo.navigating=false
+    })
+  } else {
+    log('<span class="t0">00ms</span>  <span class="blue">navigate</span> → /item/x7-3fq <span class="dim">(cold — no prefetch)</span>')
+    .then(function(){return log('<span class="t0">03ms</span>  useQuery(items.getFull) → cache miss → GET',150)})
+    .then(function(){
+      var s=document.createElement('div')
+      s.className='skel show'
+      s.innerHTML='<div class="sk" style="width:70%"></div><div class="sk" style="width:92%"></div><div class="sk" style="width:55%"></div>'
+      consoleEl.appendChild(s)
+      return new Promise(function(res){setTimeout(res,850)})
+    })
+    .then(function(){
+      var s=consoleEl.querySelector('.skel');if(s)s.remove()
+      return log('<span class="t0">~480ms</span> items.getFull <span class="ok">✓</span> — page rendered')
+    })
+    .then(function(){
+      var r=document.createElement('div')
+      r.className='result cold show'
+      r.innerHTML='<div class="rt">Fetched on mount.</div><div class="rd">still correct, just slower — the same query options ran as a normal fetch<br>hover first, then navigate, to feel the difference</div>'
+      consoleEl.appendChild(r)
+      consoleEl.scrollTop=consoleEl.scrollHeight
+      demo.navigating=false
+    })
+  }
+}
+navBtn.addEventListener('click',navigate)
+resetBtn.addEventListener('click',function(){
+  demo.warmed=false;demo.warming=false;demo.navigating=false
+  card.classList.remove('warm')
+  cacheState.innerHTML='cache: <em>cold</em>'
+  hint.textContent='→ hover the card, like a real visitor would'
+  clearConsole()
+  log('<span class="dim">// cache cleared — try navigating cold, or hover first</span>')
+})
+
+})()
+</script>
+</body>
+</html>
