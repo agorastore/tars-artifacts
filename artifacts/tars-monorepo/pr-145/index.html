@@ -525,12 +525,12 @@ presets: defineDataListPresets({
   </ul>
 
   <h3 id="links-demo"><span class="hnum">3.2</span>Try it: open a shared link</h3>
-  <p>Replay what happens when a colleague opens your link while the preset query is still in flight:</p>
+  <p>Replay what happens when a colleague opens your link while the preset query is still in flight — and watch the applied state <b>take over the URL</b>: DataList serializes filters and sort into the route, so what you end up with is not a bare path but the shareable state itself.</p>
 
   <div class="demo rv">
     <div class="dhead"><span class="t">Simulation · <em>?preset=follow-up-overdue</em> · one-shot consumption</span></div>
     <div class="linkdemo">
-      <div class="urlbar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="13" height="13"><rect x="5" y="10" width="14" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg><span id="ld-url">app.agorastore.fr/seller/invoices<b id="ld-qs">?preset=follow-up-overdue</b></span></div>
+      <div class="urlbar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="13" height="13"><rect x="5" y="10" width="14" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg><span id="ld-url">app.agorastore.fr/seller/invoices<b id="ld-qs">?preset=follow-up-overdue</b><i id="ld-state"></i></span></div>
       <div class="ld-console" id="ld-console"></div>
       <div class="ld-actions"><button id="ld-run">Open the link</button><button id="ld-reset">Reset</button></div>
     </div>
@@ -698,6 +698,8 @@ const { options, pending } =
 .urlbar svg{flex-shrink:0;color:var(--green)}
 .urlbar b{color:var(--amber);font-weight:500;transition:opacity .6s}
 .urlbar b.gone{opacity:0}
+.urlbar i{color:var(--green);font-style:normal;opacity:0;transition:opacity .6s}
+.urlbar i.show{opacity:1}
 .ld-console{font-family:var(--mono);font-size:12px;line-height:2;min-height:150px;padding:14px 4px 4px}
 .ld-console .cl{opacity:0;transform:translateY(4px);animation:clin .35s cubic-bezier(.22,1,.36,1) forwards;white-space:pre-wrap;word-break:break-word}
 @keyframes clin{to{opacity:1;transform:none}}
@@ -1033,7 +1035,7 @@ veil.addEventListener('click',function(e){if(e.target===veil)veil.classList.remo
 renderAll()
 
 /* ================= DEMO 2 : deep link ================= */
-var ldConsole=$('ld-console'),ldQs=$('ld-qs'),ldRunning=false
+var ldConsole=$('ld-console'),ldQs=$('ld-qs'),ldState=$('ld-state'),ldRunning=false
 function ldLine(html,cls,delay){
   return new Promise(function(res){
     setTimeout(function(){
@@ -1048,6 +1050,9 @@ function ldLine(html,cls,delay){
 function ldReset(){
   ldConsole.innerHTML=''
   ldQs.classList.remove('gone')
+  ldQs.style.display=''
+  ldState.classList.remove('show')
+  ldState.textContent=''
   ldRunning=false
 }
 $('ld-reset').addEventListener('click',ldReset)
@@ -1058,10 +1063,16 @@ $('ld-run').addEventListener('click',function(){
   .then(function(){return ldLine('  presets query <span class="dim">[\'api\',\'tableViews\',\'list\']</span> … pending','dim',420)})
   .then(function(){return ldLine('  presets query settled · <span class="ok">3 views</span> <span class="dim">(engine waited — a slow network never loses the link)</span>','',900)})
   .then(function(){return ldLine('✓ apply(<span class="warmc">"Overdue follow-up"</span>) · filters + search + sort + visible columns','ok',500)})
-  .then(function(){return ldLine('✓ routeQuery.consume(<span class="warmc">\'preset\'</span>) · one-shot — the URL is clean, the table is free to diverge','blue',600)})
+  .then(function(){
+    ldState.textContent='&filters.status=[“overdue”]&key=issuedAt&dir=desc'.replace(/“|”/g,'"')
+    ldState.classList.add('show')
+    return ldLine('  queryState → route · <span class="ok">filters.status=["overdue"] · key=issuedAt · dir=desc</span> <span class="dim">(persistency — the table serializes its own state into the URL)</span>','',450)
+  })
+  .then(function(){return ldLine('✓ routeQuery.consume(<span class="warmc">\'preset\'</span>) · one-shot — only the preset param is removed, the state params stay','blue',700)})
   .then(function(){
     ldQs.classList.add('gone')
-    return ldLine('  <span class="dim">// unknown id? consumed silently, table state untouched — fails closed</span>','dim',700)
+    setTimeout(function(){ldQs.style.display='none';ldState.textContent='?'+ldState.textContent.slice(1)},650)
+    return ldLine('  <span class="dim">// what remains is the state itself — the URL is now a saved view by hand. unknown id? consumed silently — fails closed</span>','dim',800)
   })
   .then(function(){ldRunning=false})
 })
