@@ -12,9 +12,13 @@ description: >-
 One process, two deliverables, one narrative. "Artifactizing" a branch means producing:
 
 - **Deliverable A — the PR description.** The executive form. Succinct, design-first markdown that
-  gives a reviewer the *right* context, and always links the artifact.
-- **Deliverable B — the artifact page.** The long form. A self-contained interactive HTML page at
-  `artifacts/{repository}/pr-{number}/index.html`, published on GitHub Pages.
+  gives a reviewer the *right* context, and always links the artifact. One per pull request —
+  a cross-repository change has several PRs, so several descriptions, all sharing one thesis.
+- **Deliverable B — the artifact page.** The long form. A self-contained interactive HTML page,
+  published on GitHub Pages. Always exactly **one canonical page per change**:
+  `artifacts/{repository}/pr-{number}/index.html` for a single-repository PR, or
+  `artifacts/cross-repo/{slug}/index.html` for a change spanning several repositories (with a
+  redirect stub per member PR — see the shape rules below).
 
 Both come from the same research pass and argue the same thesis. Never produce one without at
 least planning the other. The canonical shipped examples are
@@ -28,9 +32,37 @@ suggestion: same fonts, palette, layout chrome, component vocabulary, and intera
 
 1. `references/writing-guide.md` — tone, thesis, and per-component redaction rules with good/bad
    examples. Read it before writing a single sentence of either deliverable.
-2. `references/page-skeleton.html` — the starting file for every artifact. Copy it; never restyle
-   it, never rebuild the CSS or scaffolding from scratch.
+2. The page template for the change's shape — copy it; never restyle it, never rebuild the CSS or
+   scaffolding from scratch:
+   - `references/page-skeleton.html` — single-repository PR.
+   - `references/page-skeleton-cross-repo.html` — change spanning several repositories (adds the
+     PR-strip hero and aggregated stats).
+   - `references/redirect-stub.html` — the per-PR alias stub used by cross-repo changes.
 3. `references/pr-description-example.md` — PR #145's description, annotated section by section.
+
+## The two shapes: single-repository or cross-repository
+
+Decide the shape during research, before writing anything. The test is narrative, not mechanical:
+**if the PRs only make sense reviewed together — shared thesis, dependency-ordered merges, one
+feature story — they are one cross-repository change.** PRs that merely land the same week in
+different repos are separate changes; artifactize them separately (or not at all).
+
+Detection signals: sibling branches with the same name across repos, PRs referencing each other or
+a shared ticket, a contracts-then-consumers dependency (api repo first, app repos after), one
+deployment that requires all of them.
+
+| | Single-repository PR | Cross-repository change |
+| --- | --- | --- |
+| Canonical artifact | `artifacts/{repository}/pr-{number}/index.html` | `artifacts/cross-repo/{slug}/index.html` |
+| Template | `references/page-skeleton.html` | `references/page-skeleton-cross-repo.html` |
+| Slug | — | `yyyy-mm-kebab-name`, stable forever (e.g. `2026-07-saved-views`) |
+| Per-PR directories | the artifact itself | one **redirect stub** per member PR, from `references/redirect-stub.html`, at `artifacts/{repository}/pr-{number}/index.html` |
+| Descriptions | one | one **per member PR**, each stating its role and linking siblings + the same canonical artifact |
+| Catalog entry | one | one — the canonical page, its `meta` line naming every member PR |
+
+The stubs keep the invariant that *every* PR is findable at `artifacts/{repository}/pr-{number}/`,
+while the story lives in exactly one place. `cross-repo` is a reserved directory name — never a
+repository directory.
 
 ## Process
 
@@ -97,6 +129,12 @@ skeleton to the change — a small PR gets fewer sections, never padded ones.
 | `## Scope` | 3–5 bullets | What deliberately does *not* ship; prototypes built-then-removed; ride-alongs (one bullet, max). |
 | `## Validation` | ≤ 2 lines | What the tests *cover*, in words. Never a checklist of lint/build/CI steps. |
 
+**Cross-repository changes:** every member PR gets its own description following this contract,
+scoped to what *that* PR ships. Two additions: the pitch ends with a one-line role statement
+("Part of the ⟨change name⟩ cross-repo change — this PR ships the contracts; the consumer
+migration is ⟨repo⟩ #⟨m⟩.") with sibling PRs linked, and all descriptions link the **same**
+canonical artifact URL. Merge/review order goes in `## Scope` of each description.
+
 ## Deliverable B — the artifact page contract
 
 ### Page anatomy (all of it comes with the skeleton)
@@ -125,7 +163,15 @@ lede      1–2 sentences, 2–4 <b> bolds landing on the thesis words. No third
 Each eyebrow segment is a **link** — repository → the GitHub repo, `PR #{n}` → the pull request,
 branch name → the branch tree — styled to look exactly like plain eyebrow text (color inherited,
 no underline) with a subtle hover (color lift + offset underline). The skeleton ships the markup
-and the `.eyebrow a` rules; keep all three hrefs real.
+and the `.eyebrow a` rules; keep all three hrefs real. All GitHub links on the page open in a new
+tab (`target="_blank" rel="noopener"`).
+
+**Cross-repository variant** (shipped in `page-skeleton-cross-repo.html`): the eyebrow carries one
+linked `{repo} #{n}` segment per member PR joined with `+` (branches move out of the eyebrow), and
+the hero gains the **PR strip** — one linked card per member PR showing repo, number, branch,
+`±lines`, and its *role* in the change (≤ 8 words: "contracts & generated client", "consumer
+migration"), ordered by dependency, contracts first. The stat strip aggregates across all member
+PRs ("files changed, {N} repositories").
 
 **Stat strip — 4 to 6 stats, two families:**
 
@@ -175,8 +221,10 @@ Chapters follow a narrative order, not the diff order:
 
 ## Register, verify, ship
 
-1. `artifacts/{repository}/pr-{number}/index.html` — exactly one directory per PR; never overwrite
-   an existing artifact to describe later work.
+1. Place the canonical page: `artifacts/{repository}/pr-{number}/index.html` for a single-repo PR,
+   `artifacts/cross-repo/{slug}/index.html` for a cross-repo change — plus one redirect stub per
+   member PR at `artifacts/{repository}/pr-{number}/index.html`. Exactly one directory per PR;
+   never overwrite an existing artifact to describe later work.
 2. **Register it — mandatory, an unregistered artifact is invisible.** The root `index.html` is
    the practical visual catalog GitHub Pages displays: add the new artifact there (newest first,
    `meta` line + `h2` + one-sentence `p` in the existing card format) and to the README "Browse"
@@ -184,8 +232,9 @@ Chapters follow a narrative order, not the diff order:
 3. Verify mechanically: balanced tags and no duplicate ids; `node --check` on the extracted
    script; a jsdom smoke test that clicks through *every* demo interaction (open, apply, mutate,
    reset) and asserts zero errors; then a visual pass in a browser.
-4. Cross-link: the PR description carries the published artifact URL
-   (`https://agorastore.github.io/tars-artifacts/artifacts/{repository}/pr-{number}/`); the
-   artifact footer links back to the PR.
+4. Cross-link: every PR description carries the canonical published artifact URL
+   (`…/artifacts/{repository}/pr-{number}/`, or `…/artifacts/cross-repo/{slug}/` for cross-repo
+   changes, under `https://agorastore.github.io/tars-artifacts/`); the artifact footer links back
+   to the PR — every member PR, for cross-repo changes.
 5. Commit directly on `main` — artifact directory + catalog updates in one commit. Deliver the PR
    description to the PR body (or hand it to the requester); it does not live in this repository.

@@ -6,17 +6,25 @@ This repository contains durable, static pull-request artifacts for Agorastore's
 
 ```text
 artifacts/
-  {repository}/
+  {repository}/            # the GitHub repository name, e.g. tars-monorepo
     pr-{number}/
-      index.html
+      index.html           # single-repository PR artifact — or a redirect stub (see below)
       assets/              # optional, local to that artifact
+  cross-repo/              # reserved name — never a repository directory
+    {slug}/                # yyyy-mm-kebab-name, e.g. 2026-07-saved-views
+      index.html           # the one canonical artifact for a change spanning several repositories
+      assets/
 ```
 
 For Agorastore repositories, `{repository}` is the GitHub repository name, such as `tars-monorepo`. `{number}` is the GitHub pull-request number. The public URL always mirrors this path below `https://agorastore.github.io/tars-artifacts/`.
 
+A change spanning several repositories gets exactly one canonical artifact under `artifacts/cross-repo/{slug}/`, and every member pull request still gets its `artifacts/{repository}/pr-{number}/index.html` — as a small redirect stub pointing at the canonical page — so lookup by repository and PR number always resolves. Only the canonical page is listed in the catalog.
+
 ## Rules for artifacts
 
-- Create exactly one directory per pull request: `artifacts/{repository}/pr-{number}/`.
+- Create exactly one directory per pull request: `artifacts/{repository}/pr-{number}/`. For
+  cross-repository changes, that directory holds a redirect stub and the artifact itself lives
+  once under `artifacts/cross-repo/{slug}/`.
 - Put the entry page at `index.html`. It must be a plain HTML document, never an application requiring a package install, bundler, server render, or deployment platform configuration.
 - Prefer a self-contained document. An artifact should still work if the source PR branch, a preview deployment, or a third-party host disappears.
 - Do not overwrite an existing artifact as a way to describe later work. Add a new artifact for the relevant pull request instead.

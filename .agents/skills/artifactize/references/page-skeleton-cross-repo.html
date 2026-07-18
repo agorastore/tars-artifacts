@@ -1,8 +1,10 @@
 <!doctype html>
 <!--
-  ARTIFACTIZE PAGE SKELETON — copy this file to artifacts/{repository}/pr-{number}/index.html
-  and fill every ⟨PLACEHOLDER⟩. Read .agents/skills/artifactize/SKILL.md and
-  references/writing-guide.md first.
+  ARTIFACTIZE PAGE SKELETON — CROSS-REPOSITORY CHANGE
+  Copy this file to artifacts/cross-repo/{slug}/index.html (slug: yyyy-mm-kebab-name) and fill
+  every ⟨PLACEHOLDER⟩. Also create one redirect stub per member PR from
+  references/redirect-stub.html at artifacts/{repository}/pr-{number}/index.html.
+  Read .agents/skills/artifactize/SKILL.md and references/writing-guide.md first.
 
   HARD RULES
   - Do not restyle: fonts, palette variables, layout and scaffolding JS stay as-is.
@@ -14,7 +16,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>⟨Title Case Feature Name⟩ — ⟨repository⟩ PR #⟨n⟩</title>
+<title>⟨Title Case Change Name⟩ — cross-repo · ⟨repo-a⟩ #⟨n⟩ + ⟨repo-b⟩ #⟨m⟩</title>
 <meta name="description" content="⟨One-sentence thesis, ≤160 chars.⟩">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -115,6 +117,18 @@ main{min-width:0;padding:0 clamp(24px,5vw,84px) 120px}
 .stat .v .plus{color:var(--green)}
 .stat .v .minus{color:var(--red)}
 .stat .l{font-size:12.5px;color:var(--faint);margin-top:3px;letter-spacing:.02em}
+
+/* pr strip — one card per member pull request */
+.prstrip{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:14px;margin:44px 0 0}
+.prcard{display:flex;flex-direction:column;gap:3px;border:1px solid var(--line-soft);border-radius:10px;padding:15px 17px;background:linear-gradient(180deg,var(--surface) 0%,transparent 140%);color:inherit;text-decoration:none;transition:border-color .15s ease}
+.prcard:hover{border-color:var(--amber-deep);text-decoration:none}
+.prcard .pr-repo{font-family:var(--mono);font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--amber)}
+.prcard .pr-num{font-family:var(--serif);font-size:22px;font-weight:600;line-height:1.2}
+.prcard .pr-branch{font-family:var(--mono);font-size:11px;color:var(--faint);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.prcard .pr-lines{font-family:var(--mono);font-size:11.5px;margin-top:2px}
+.prcard .pr-lines .plus{color:var(--green)}
+.prcard .pr-lines .minus{color:var(--red)}
+.prcard .pr-role{font-size:12.5px;color:var(--muted);margin-top:4px;line-height:1.45}
 
 /* ---------- chapters ---------- */
 .chapter{padding-top:clamp(72px,11vh,120px)}
@@ -311,7 +325,7 @@ footer .fm{font-family:var(--mono);font-size:11.5px;letter-spacing:.04em}
 <div class="shell">
 
 <nav class="rail">
-  <span class="brand">⟨repository⟩ · <b>PR&nbsp;#⟨n⟩</b></span>
+  <span class="brand">cross-repo · <b>⟨N⟩&nbsp;PRs</b></span>
   <h2>⟨Feature name⟩</h2>
   <!-- 4–10 chapters. Chapter ids: one word. Subsection ids: chapter-word. Scroll-spy is automatic. -->
   <div class="toc" id="toc">
@@ -343,15 +357,36 @@ footer .fm{font-family:var(--mono);font-size:11.5px;letter-spacing:.04em}
 <div class="col">
 <!-- ================= HERO ================= -->
 <header class="hero">
-  <span class="eyebrow"><a href="https://github.com/agorastore/⟨repository⟩" target="_blank" rel="noopener">⟨repository⟩</a> · <a href="https://github.com/agorastore/⟨repository⟩/pull/⟨n⟩" target="_blank" rel="noopener"><em>PR #⟨n⟩</em></a> · <a href="https://github.com/agorastore/⟨repository⟩/tree/⟨branch-name⟩" target="_blank" rel="noopener">⟨branch-name⟩</a></span>
+  <!-- Eyebrow: one linked segment per member PR (repo #n), joined with " + ". Branches live in the PR strip. -->
+  <span class="eyebrow"><a href="https://github.com/agorastore/⟨repo-a⟩/pull/⟨n⟩" target="_blank" rel="noopener">⟨repo-a⟩ #⟨n⟩</a> + <a href="https://github.com/agorastore/⟨repo-b⟩/pull/⟨m⟩" target="_blank" rel="noopener">⟨repo-b⟩ #⟨m⟩</a> · <em>cross-repository change</em></span>
   <h1>⟨Short noun phrase⟩<span class="dot">.</span></h1>
-  <p class="lede">⟨1–2 sentences; 2–4 <b>bolds</b> landing on the thesis words.⟩</p>
+  <p class="lede">⟨1–2 sentences; 2–4 <b>bolds</b> landing on the thesis words. Say what the change is, not that it spans repositories — the chrome already says that.⟩</p>
 
-  <!-- Stat strip: 3 mechanical stats first, then 1–3 editorial stats that ARGUE (0 and 1 are the strongest numbers). -->
+  <!-- PR strip: the signature component of a cross-repo artifact. One card per member PR:
+       repo, number, branch, ±lines, and its ROLE in the change (≤8 words, e.g. "contracts & generated client"
+       / "consumer migration"). Cards are links, open in a new tab. Order: dependency order, contracts first. -->
+  <div class="prstrip">
+    <a class="prcard" href="https://github.com/agorastore/⟨repo-a⟩/pull/⟨n⟩" target="_blank" rel="noopener">
+      <span class="pr-repo">⟨repo-a⟩</span>
+      <span class="pr-num">PR #⟨n⟩</span>
+      <span class="pr-branch">⟨branch-a⟩</span>
+      <span class="pr-lines"><span class="plus">+⟨added⟩</span> <span class="minus">−⟨removed⟩</span></span>
+      <span class="pr-role">⟨role in the change, ≤8 words⟩</span>
+    </a>
+    <a class="prcard" href="https://github.com/agorastore/⟨repo-b⟩/pull/⟨m⟩" target="_blank" rel="noopener">
+      <span class="pr-repo">⟨repo-b⟩</span>
+      <span class="pr-num">PR #⟨m⟩</span>
+      <span class="pr-branch">⟨branch-b⟩</span>
+      <span class="pr-lines"><span class="plus">+⟨added⟩</span> <span class="minus">−⟨removed⟩</span></span>
+      <span class="pr-role">⟨role in the change, ≤8 words⟩</span>
+    </a>
+  </div>
+
+  <!-- Stat strip: AGGREGATED across every member PR. Mechanical stats first, then 1–3 editorial stats. -->
   <div class="statstrip">
-    <div class="stat"><div class="v" data-count="⟨files⟩">0</div><div class="l">files changed</div></div>
-    <div class="stat"><div class="v"><span class="plus">+⟨added⟩</span> <span class="minus">−⟨removed⟩</span></div><div class="l">lines</div></div>
-    <div class="stat"><div class="v" data-count="⟨commits⟩">0</div><div class="l">granular commits</div></div>
+    <div class="stat"><div class="v" data-count="⟨total files⟩">0</div><div class="l">files changed, ⟨N⟩ repositories</div></div>
+    <div class="stat"><div class="v"><span class="plus">+⟨total added⟩</span> <span class="minus">−⟨total removed⟩</span></div><div class="l">lines</div></div>
+    <div class="stat"><div class="v" data-count="⟨total commits⟩">0</div><div class="l">granular commits</div></div>
     <div class="stat"><div class="v">⟨0|1|N⟩</div><div class="l">⟨editorial label, ≤5 words⟩</div></div>
   </div>
 </header>
@@ -446,7 +481,7 @@ footer .fm{font-family:var(--mono);font-size:11.5px;letter-spacing:.04em}
 </section>
 
 <footer>
-  <span>⟨Feature name⟩ · ⟨repository⟩ <a href="https://github.com/agorastore/⟨repository⟩/pull/⟨n⟩" target="_blank" rel="noopener">PR #⟨n⟩</a> · ⟨branch-name⟩ · ⟨Month Year⟩</span>
+  <span>⟨Change name⟩ · <a href="https://github.com/agorastore/⟨repo-a⟩/pull/⟨n⟩" target="_blank" rel="noopener">⟨repo-a⟩ #⟨n⟩</a> · <a href="https://github.com/agorastore/⟨repo-b⟩/pull/⟨m⟩" target="_blank" rel="noopener">⟨repo-b⟩ #⟨m⟩</a> · ⟨Month Year⟩</span>
   <span class="fm">agorastore · TARS</span>
 </footer>
 

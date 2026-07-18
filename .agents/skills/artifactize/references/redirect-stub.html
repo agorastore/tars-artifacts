@@ -1,0 +1,33 @@
+<!doctype html>
+<!--
+  ARTIFACTIZE REDIRECT STUB — for member PRs of a cross-repository change.
+  Copy to artifacts/{repository}/pr-{number}/index.html for EVERY member PR, so lookup-by-PR
+  always resolves. The canonical artifact lives at artifacts/cross-repo/{slug}/index.html.
+  Fill every ⟨PLACEHOLDER⟩. The relative path ../../cross-repo/⟨slug⟩/ is correct from any
+  artifacts/{repository}/pr-{number}/ directory — keep it relative so local preview works.
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="refresh" content="0; url=../../cross-repo/⟨slug⟩/">
+<link rel="canonical" href="https://agorastore.github.io/tars-artifacts/artifacts/cross-repo/⟨slug⟩/">
+<title>⟨repository⟩ PR #⟨n⟩ → ⟨Change Name⟩</title>
+<style>
+  :root { color-scheme: dark; }
+  body { margin: 0; min-height: 100vh; display: grid; place-items: center; background: oklch(16.5% .026 262);
+         color: oklch(70% .024 262); font: 15px/1.6 'Instrument Sans', system-ui, sans-serif; }
+  main { max-width: 460px; padding: 24px; text-align: center; }
+  .eyebrow { font-family: ui-monospace, monospace; font-size: 11px; letter-spacing: .1em;
+             text-transform: uppercase; color: oklch(54% .03 262); }
+  a { color: #FDBF62; }
+</style>
+</head>
+<body>
+<main>
+  <div class="eyebrow">⟨repository⟩ · PR #⟨n⟩</div>
+  <p>This pull request is part of the cross-repository change
+     <a href="../../cross-repo/⟨slug⟩/">⟨Change Name⟩</a>. Redirecting…</p>
+</main>
+</body>
+</html>

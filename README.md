@@ -51,11 +51,22 @@ artifacts/
     pr-{number}/         # the pull-request number
       index.html         # the artifact — a plain, self-contained HTML page
       assets/            # optional, local to that artifact
+  cross-repo/            # reserved — changes spanning several repositories
+    {slug}/              # yyyy-mm-kebab-name, e.g. 2026-07-saved-views
+      index.html         # the one canonical artifact for the whole change
 ```
 
 ```text
 https://agorastore.github.io/tars-artifacts/artifacts/{repository}/pr-{number}/
+https://agorastore.github.io/tars-artifacts/artifacts/cross-repo/{slug}/
 ```
+
+A change that spans several repositories — contracts in one, consumers in another — is still one
+story, so it gets **one canonical artifact** under `cross-repo/{slug}/` with a PR-strip hero
+linking every member pull request. Each member PR keeps its own
+`artifacts/{repository}/pr-{number}/` directory as a redirect stub to the canonical page, so
+looking an artifact up by PR always works, and each PR's description states its role in the change
+and links its siblings.
 
 The root `index.html` is the visual catalog: every artifact must be registered there (and in this
 README) to be discoverable — an unregistered artifact is invisible.
@@ -70,9 +81,12 @@ and coding agents alike — point an agent at a branch and say *"artifactize thi
   the author only about unrecoverable *whys*; find the thesis; then produce both deliverables;
 - **the [writing guide](.agents/skills/artifactize/references/writing-guide.md)** — tone and
   per-component redaction rules, every rule with a good/bad example pair;
-- **the [page skeleton](.agents/skills/artifactize/references/page-skeleton.html)** — the uniform
-  design system (fonts, palette, rail sommaire, hero stat strip, component vocabulary, demo
-  scaffolding) every artifact starts from, extracted verbatim from the shipped pages;
+- **the page templates** — the uniform design system (fonts, palette, rail sommaire, hero stat
+  strip, component vocabulary, demo scaffolding) every artifact starts from, extracted verbatim
+  from the shipped pages: [single-repository PR](.agents/skills/artifactize/references/page-skeleton.html),
+  [cross-repository change](.agents/skills/artifactize/references/page-skeleton-cross-repo.html)
+  (PR-strip hero, aggregated stats), and the
+  [per-PR redirect stub](.agents/skills/artifactize/references/redirect-stub.html);
 - **a [PR-description exemplar](.agents/skills/artifactize/references/pr-description-example.md)** —
   PR #145's description, annotated section by section.
 
