@@ -62,12 +62,12 @@ header.hero .in{position:relative;max-width:1180px;margin:0 auto}
 .hero .host i.new{background:#FDBF62}
 .herostats{position:relative;max-width:1180px;margin:56px auto 0;display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:14px}
 .hstat{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.13);border-radius:14px;padding:20px 20px 17px;backdrop-filter:blur(4px)}
-.hstat .v{font-family:var(--disp);font-weight:700;font-size:clamp(30px,3.2vw,42px);line-height:1;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+.hstat .v{font-family:var(--disp);font-weight:700;font-size:clamp(26px,2.7vw,36px);line-height:1;letter-spacing:-.02em;font-variant-numeric:tabular-nums;white-space:nowrap}
 .hstat .v em{font-style:normal;color:#FDBF62}
 .hstat .l{font-size:12.5px;color:#B8C6E4;margin-top:8px;line-height:1.4}
 
 /* ============ shells ============ */
-section.blk{padding:96px 24px 20px}
+section.blk{padding:96px 24px 48px}
 section.blk .in{max-width:1180px;margin:0 auto}
 .kick{display:flex;align-items:center;gap:12px;font-family:var(--mono);font-size:12px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--blue)}
 .kick::before{content:'';width:26px;height:2px;background:var(--amber);display:inline-block}
@@ -231,14 +231,18 @@ details.tblx summary:hover{color:var(--ink)}
 .pipe .verdictline{margin-top:18px;font-size:13px;line-height:1.6;color:var(--sub);border-top:1px dashed var(--line-2);padding-top:14px}
 .pipe .verdictline b{color:var(--ink)}
 .pfacts{display:flex;flex-wrap:wrap;gap:7px;margin-top:14px}
-.status-strip{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:14px;margin-top:18px}
-.sst{padding:16px 20px;display:flex;align-items:center;gap:14px}
-.sst .code{font-family:var(--mono);font-weight:600;font-size:13px;border-radius:8px;padding:5px 10px;flex-shrink:0}
-.sst .code.ok{background:var(--green-soft);color:var(--green)}
-.sst .code.bad{background:var(--red-soft);color:var(--red)}
-.sst .w{font-size:13px;color:var(--sub);line-height:1.45}
-.sst .w b{color:var(--ink);display:block;font-size:13.5px}
-.bignum-strip{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:14px;margin-top:18px}
+.dcompare{margin-top:20px;overflow:hidden}
+.dcompare .dch{padding:20px 26px 4px;font-family:var(--disp);font-weight:600;font-size:17px;letter-spacing:-.01em}
+.dcompare .dcs{padding:0 26px 16px;font-size:13px;color:var(--sub)}
+.dcompare table{width:100%;border-collapse:collapse;font-size:13.5px}
+.dcompare th{font-family:var(--mono);font-size:10.5px;text-transform:uppercase;letter-spacing:.1em;color:var(--faint);font-weight:600;text-align:left;padding:11px 16px;border-top:1px solid var(--line);border-bottom:1px solid var(--line);background:#FAFBFD}
+.dcompare th:first-child,.dcompare td:first-child{padding-left:26px}
+.dcompare td{padding:14px 16px;border-bottom:1px solid var(--line);vertical-align:top;color:var(--sub);line-height:1.5}
+.dcompare tr:last-child td{border-bottom:none}
+.dcompare td:first-child{font-weight:600;color:var(--ink);white-space:nowrap}
+.stx{font-family:var(--mono);font-size:11.5px;font-weight:600;border-radius:7px;padding:3px 9px;margin-right:8px;display:inline-block}
+.stx.ok{background:var(--green-soft);color:var(--green)}
+.stx.bad{background:var(--red-soft);color:var(--red)}
 
 /* ============ AI ============ */
 .rubric{padding:28px 30px 20px;margin-top:44px}
@@ -266,6 +270,45 @@ details.tblx summary:hover{color:var(--ink)}
 .surf-body .kv{color:#93CFC0}
 .surf-foot{display:flex;flex-wrap:wrap;gap:8px;padding:14px 20px;background:#fff;border-top:1px solid var(--line)}
 .surf-brand{display:flex;gap:8px;margin-left:auto}
+
+/* AI why-grid */
+.whygrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(330px,1fr));gap:16px;margin-top:18px}
+.why-card{padding:22px 24px}
+.why-card .wtop{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin-bottom:8px}
+.why-card h5{font-family:var(--disp);font-size:15.5px;font-weight:600;letter-spacing:-.01em;line-height:1.3}
+.why-card .wsc{font-family:var(--disp);font-weight:700;font-size:15px;white-space:nowrap;color:var(--blue);font-variant-numeric:tabular-nums}
+.why-card .wsc s{color:var(--faint);font-weight:600;margin-right:6px;text-decoration-thickness:1.5px}
+.why-card .wsc small{color:var(--faint);font-weight:500;font-size:11px}
+.why-card p{font-size:13px;color:var(--sub);line-height:1.62}
+.why-card p b{color:var(--ink)}
+/* stack */
+.stackwrap{margin-top:18px;padding:26px 28px}
+.stackwrap .sh{font-family:var(--disp);font-weight:600;font-size:19px;letter-spacing:-.01em}
+.stackwrap .ss{font-size:13.5px;color:var(--sub);margin:4px 0 22px}
+.stack3{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px}
+.stackcol{border:1px solid var(--line);border-radius:12px;padding:18px 20px;background:#FAFBFD}
+.stackcol .mh{display:flex;align-items:center;gap:9px;margin-bottom:12px}
+.stackcol .mh b{font-family:var(--mono);font-size:13px;font-weight:600}
+.stackcol .mtag{font-family:var(--mono);font-size:9.5px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;border-radius:999px;padding:2.5px 9px}
+.stackcol .mtag.mod{background:var(--blue-soft);color:var(--blue)}
+.stackcol .mtag.cus{background:#FDF1DD;color:var(--amber-deep)}
+.stackcol ul{list-style:none}
+.stackcol li{font-size:12.5px;color:var(--sub);line-height:1.55;padding:5px 0 5px 18px;position:relative}
+.stackcol li::before{content:'';position:absolute;left:2px;top:.8em;width:8px;height:2px;background:var(--amber);border-radius:2px}
+.stackcol li b{color:var(--ink)}
+.agentpath{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-top:22px;padding-top:20px;border-top:1px dashed var(--line-2)}
+.agentpath .apl{font-size:12px;font-weight:600;color:var(--sub);margin-right:4px}
+.agentpath .aps{font-family:var(--mono);font-size:11.5px;font-weight:600;background:#fff;border:1px solid var(--line-2);border-radius:8px;padding:6px 12px;color:var(--ink)}
+.agentpath .apa{color:var(--amber-deep);font-weight:700}
+/* roadmap */
+.road{margin-top:44px;display:flex;flex-direction:column;gap:14px}
+.rstep{display:grid;grid-template-columns:56px 1fr;gap:22px;padding:24px 28px 22px;align-items:start}
+@media(max-width:560px){.rstep{grid-template-columns:44px 1fr;gap:14px}}
+.rnum{width:44px;height:44px;border-radius:12px;background:linear-gradient(135deg,#182d5b,#2B4D93);color:#FDBF62;font-family:var(--disp);font-weight:700;font-size:19px;display:flex;align-items:center;justify-content:center}
+.rstep h4{font-family:var(--disp);font-size:17.5px;font-weight:600;letter-spacing:-.01em;margin-bottom:6px}
+.rstep p{font-size:13.5px;color:var(--sub);line-height:1.65;max-width:860px}
+.rstep p b{color:var(--ink)}
+.rstep .rfacts{display:flex;flex-wrap:wrap;gap:7px;margin-top:12px}
 
 /* ============ social studio ============ */
 .studio-controls{display:flex;flex-wrap:wrap;align-items:center;gap:14px;margin:40px 0 22px}
@@ -384,7 +427,7 @@ footer.end .fine{margin-top:34px;padding-top:20px;border-top:1px solid rgba(255,
       <a href="#ai">AI readiness</a>
       <a href="#social">Social previews</a>
       <a href="#a11y">Accessibility</a>
-      <a href="#next">What's next</a>
+      <a href="#next">Launch plan</a>
     </div>
   </div>
 </nav>
@@ -554,11 +597,21 @@ footer.end .fine{margin-top:34px;padding-top:20px;border-top:1px solid rgba(255,
       </div>
     </div>
 
-    <div class="status-strip rv">
-      <div class="card sst"><span class="code bad">403</span><div class="w"><b>V1 robots.txt</b>S3 AccessDenied XML instead of a crawler policy</div></div>
-      <div class="card sst"><span class="code bad">HTML</span><div class="w"><b>V1 sitemap.xml</b>returns the SPA shell, not XML</div></div>
-      <div class="card sst"><span class="code ok">200</span><div class="w"><b>V2 robots.txt</b>valid policy — search allowed, AI-training bots opted out</div></div>
-      <div class="card sst"><span class="code ok">100</span><div class="w"><b>V2 Lighthouse SEO</b>on all six page / form-factor runs — V1: 66–69</div></div>
+    <div class="card dcompare rv">
+      <div class="dch">Discovery surfaces, side by side</div>
+      <div class="dcs">Every row measured live — V1 on current production, V2 on build 849.</div>
+      <div style="overflow-x:auto">
+      <table>
+        <thead><tr><th>Surface</th><th>V1 · old</th><th>V2 · new</th></tr></thead>
+        <tbody>
+          <tr><td>robots.txt</td><td><span class="stx bad">403</span>S3 AccessDenied XML instead of a crawler policy</td><td><span class="stx ok">200</span>valid policy — search allowed, AI-training bots opted out</td></tr>
+          <tr><td>Sitemap index</td><td><span class="stx bad">HTML</span>sitemap URLs return the SPA shell, not XML</td><td><span class="stx ok">200</span>valid XML — 1 pages map + 348 monthly product maps</td></tr>
+          <tr><td>Product URLs</td><td><span class="stx bad">0</span>no first-party discovery surface at all</td><td><span class="stx ok">383</span>in the July map alone · ≈84,158 + 52,243 localized URLs at full scale</td></tr>
+          <tr><td>Canonicals &amp; hreflang</td><td><span class="stx bad">partial</span>only inside the hidden crawler renderer</td><td><span class="stx ok">every page</span>request-aware canonical + 5-locale alternates in universal SSR</td></tr>
+          <tr><td>Lighthouse SEO</td><td><span class="stx bad">66–69</span>measured on the browser SPA</td><td><span class="stx ok">100</span>on all six page / form-factor runs</td></tr>
+        </tbody>
+      </table>
+      </div>
     </div>
   </div>
 </section>
@@ -568,7 +621,7 @@ footer.end .fine{margin-top:34px;padding-top:20px;border-top:1px solid rgba(255,
   <div class="in">
     <div class="kick">06 · AI &amp; GEO readiness</div>
     <h2 class="title">When ChatGPT visits V1, it finds nothing.<br>V2 speaks its language natively.</h2>
-    <p class="lead">Answer engines are becoming a real acquisition channel. On V1, GPTBot and PerplexityBot receive the same empty shell as browsers, and every AI surface returns 404. V2 detects them and serves <b>clean Markdown</b> — plus a machine-readable index of the whole marketplace.</p>
+    <p class="lead">Answer engines are becoming a real acquisition channel — and they don't execute JavaScript apps to guess a price. On V1, GPTBot and PerplexityBot receive the same empty shell as browsers, and every AI surface returns 404. V2 gives an agent <b>full visibility of the platform</b>: native Markdown for every route, a guided <code style="font-family:var(--mono);font-size:.85em">llms.txt</code> map, structured data on every page, and complete product indexing through the sitemaps. The rubric below scores five criteria by weight — then each one is broken down.</p>
 
     <div class="card rubric rv">
       <div class="totals">
@@ -577,6 +630,70 @@ footer.end .fine{margin-top:34px;padding-top:20px;border-top:1px solid rgba(255,
         <div class="tot v2n"><span class="n" data-count="96">0</span><span class="lab">V2 · new<small>evidence-based, /100</small></span></div>
       </div>
       <div id="rubricRows"></div>
+    </div>
+
+    <div class="whygrid">
+      <div class="card why-card rv">
+        <div class="wtop"><h5>Universal rendering</h5><span class="wsc"><s>8</s>25<small>/25</small></span></div>
+        <p>The single biggest criterion: can any agent read the page at all? V1 only renders content for Google's hidden crawler app — browsers, GPTBot and Perplexity get an empty shell. V2 serves <b>one complete SSR document to every user agent</b>, so the page an AI parses is exactly the page a human sees. No cloaking, no parity risk.</p>
+      </div>
+      <div class="card why-card rv">
+        <div class="wtop"><h5>Structured semantics</h5><span class="wsc"><s>12</s>20<small>/20</small></span></div>
+        <p>V1's JSON-LD exists only inside the Google-only renderer. V2 emits a <b>full Schema.org graph in universal SSR</b>: WebSite, WebPage, Organization and ImageObject sitewide; Product, Offer and BreadcrumbList with resolved labels on every product — generated from the same data source as the visible page, so it can never drift.</p>
+      </div>
+      <div class="card why-card rv">
+        <div class="wtop"><h5>AI-native text surfaces</h5><span class="wsc"><s>0</s>23<small>/25</small></span></div>
+        <p>V1 has literally nothing: <b>llms.txt, llms-full.txt and every .md mirror return 404</b>. V2 detects AI agents and serves native Markdown for every route, publishes a machine-readable site map in llms.txt and a 181.6 KB full-content index. The two points deliberately left: volatile auction data stays in per-product .md rather than one giant stale index.</p>
+      </div>
+      <div class="card why-card rv">
+        <div class="wtop"><h5>Robots, canonicals &amp; discovery</h5><span class="wsc"><s>2</s>20<small>/20</small></span></div>
+        <p>V1 production blocks itself: robots.txt answers 403 and sitemaps return HTML. V2 pairs a valid crawler policy with <b>349 sitemaps covering the entire product corpus</b>, request-aware canonicals and five-locale hreflang on every route — the whole discovery chain works end to end.</p>
+      </div>
+      <div class="card why-card rv">
+        <div class="wtop"><h5>Extractable clarity</h5><span class="wsc"><s>3</s>8<small>/10</small></span></div>
+        <p>To learn a V1 product's price, a model must execute an SPA or dig through ~800 KB of crawler markup. A V2 product is <b>3–4 KB of Markdown</b>: title, price, characteristics, dates, seller, canonical link. Two points remain: some pages still carry navigation context an agent must skip.</p>
+      </div>
+    </div>
+
+    <div class="card stackwrap rv">
+      <div class="sh">Where the wins come from</div>
+      <div class="ss">Two Nuxt SEO modules plus one platform layer — configured once, applied to every route, identical in every environment.</div>
+      <div class="stack3">
+        <div class="stackcol">
+          <div class="mh"><b>@nuxtjs/seo</b><span class="mtag mod">module</span></div>
+          <ul>
+            <li><b>Canonicals + hreflang</b> — request-aware, five locales, every route</li>
+            <li><b>Schema.org graph</b> — site &amp; product structured data during SSR</li>
+            <li><b>Robots + sitemap engines</b> — policy and XML served natively</li>
+            <li><b>OG images</b> — 1200×630 cards rendered from Vue templates, in tenant colors</li>
+          </ul>
+        </div>
+        <div class="stackcol">
+          <div class="mh"><b>nuxt-ai-ready</b><span class="mtag mod">module</span></div>
+          <ul>
+            <li><b>Agent detection</b> — GPTBot &amp; PerplexityBot routed to native Markdown mirrors of every route</li>
+            <li><b>llms.txt + llms-full.txt</b> — a guided map plus a 181.6 KB content index</li>
+            <li><b>Content-Signal policy</b> — search ✓, AI answers ✓, model training ✗</li>
+            <li><b>IndexNow</b> — pushes fresh URLs to search engines</li>
+          </ul>
+        </div>
+        <div class="stackcol">
+          <div class="mh"><b>Platform layer</b><span class="mtag cus">custom</span></div>
+          <ul>
+            <li><b>Tenant resolution</b> — theme, copy and domain resolved from the request host for both brands</li>
+            <li><b>One product source of truth</b> — a single composable feeds meta, JSON-LD, the OG card and the Markdown export</li>
+            <li><b>Chunked product sitemaps</b> — the legacy visibility score re-implemented on public search data, 348 monthly maps</li>
+          </ul>
+        </div>
+      </div>
+      <div class="agentpath">
+        <span class="apl">An agent's full path:</span>
+        <span class="aps">llms.txt</span><span class="apa">→</span>
+        <span class="aps">sitemap_index.xml</span><span class="apa">→</span>
+        <span class="aps">product page</span><span class="apa">→</span>
+        <span class="aps">.md + JSON-LD</span><span class="apa">→</span>
+        <span class="aps">citation with canonical link</span>
+      </div>
     </div>
 
     <div class="card surfaces rv">
@@ -683,27 +800,50 @@ footer.end .fine{margin-top:34px;padding-top:20px;border-top:1px solid rgba(255,
 <!-- ============================== NEXT ============================== -->
 <section class="blk" id="next">
   <div class="in">
-    <div class="kick">09 · Honest footnotes</div>
-    <h2 class="title">What the benchmark also revealed.</h2>
-    <p class="lead">A credible comparison names its own caveats. Three things stand between these numbers and the same numbers in production:</p>
+    <div class="kick">09 · The launch plan</div>
+    <h2 class="title">The platform is done. Here's the plan to let it breathe.</h2>
+    <p class="lead">One honest finding remains: with the shared third-party stack enabled, V2 loses <b>8 desktop and 23 mobile Lighthouse points</b> (+1.25 MB, +28 requests on every cold page). The marketplace is no longer the bottleneck — the tag stack is. The plan attacks exactly that, in order:</p>
 
-    <div class="next-grid">
-      <div class="card next-card rv">
-        <div class="nk">The big one</div>
-        <h4>Third-party scripts now hide the gains</h4>
-        <p>With the shared consent / chat / analytics stack enabled, V2 drops from <b>96 → 88 desktop</b> and <b>82 → 59 mobile</b> — about <b>+1.25 MB and +28 requests</b> on every cold page. The consent banner becomes the largest paint (~16 s on throttled mobile) and the chat widget alone causes ~0.095 CLS. <b>The platform is no longer the bottleneck; the tag stack is.</b> Replacing the consent tool, auditing the tag gateway and deferring chat are the next workstream.</p>
+    <div class="road">
+      <div class="card rstep rv">
+        <div class="rnum">1</div>
+        <div>
+          <h4>Replace Didomi with a lightweight open-source consent layer</h4>
+          <p><a href="https://cookieconsent.orestbida.com/" target="_blank" rel="noopener">CookieConsent v3</a> — MIT-licensed, a few kilobytes, fully themeable — replaces the tool whose own banner becomes the page's largest paint (<b>~16 s LCP on throttled mobile</b>). Tracking and telemetry stay, consent-gated exactly as today; what disappears is the cost of the tool itself, which currently butchers every metric it sits in front of. Includes a one-for-one legal review of the consent taxonomy.</p>
+          <div class="rfacts"><span class="fact bad">today: consent UI = the measured LCP</span><span class="fact good">after: same legal behavior, ~zero weight</span></div>
+        </div>
       </div>
-      <div class="card next-card rv">
-        <div class="nk">Application polish</div>
-        <h4>Mobile product LCP</h4>
-        <p>The product route scores <b>70 on mobile</b> with a 7.71 s gallery-image LCP — still 49% faster than V1's 15.25 s, but well behind the 88 that home and catalogue reach. Prioritizing the first gallery image is a focused, known fix — not an architecture problem.</p>
+      <div class="card rstep rv">
+        <div class="rnum">2</div>
+        <div>
+          <h4>Load GTM only after the page is measured</h4>
+          <p>Analytics events are <b>enqueued in a buffer from first paint</b>; GTM initializes only once the LCP metric has resolved, then flushes the queue. Full data, zero impact on Core Web Vitals — measurement stops competing with the content it measures. The same pass inventories every tag, duplicate tracker and pre-consent execution path in the gateway.</p>
+          <div class="rfacts"><span class="fact good">no event lost — only deferred</span><span class="fact good">scores reflect the marketplace, not the tags</span></div>
+        </div>
       </div>
-      <div class="card next-card rv">
-        <div class="nk">Before launch</div>
-        <h4>The 50-product study &amp; production probes</h4>
-        <p>This benchmark proves the platform on representative pages. The final study covers <b>25 legacy + 25 canvas-rich products</b> — metadata completeness, structured-data validity, content parity — and re-runs all crawler probes against the production edge, without UAT's Basic Auth in the way.</p>
+      <div class="card rstep rv">
+        <div class="rnum">3</div>
+        <div>
+          <h4>Chat loads on intent, not on load</h4>
+          <p>The chat widget currently ships <b>over 0.5 MB and ~0.095 CLS</b> into the critical path of every visit. It moves to interaction-or-idle loading, with reserved geometry for the launcher so nothing shifts when it arrives.</p>
+        </div>
+      </div>
+      <div class="card rstep rv">
+        <div class="rnum">4</div>
+        <div>
+          <h4>Finish the product route on mobile</h4>
+          <p>Product scores <b>70 on mobile</b> with a 7.71 s gallery-image LCP — 49% faster than V1, but behind the 88 of home and catalogue. Prioritizing the first gallery image is a focused, known fix — not an architecture problem.</p>
+        </div>
+      </div>
+      <div class="card rstep rv">
+        <div class="rnum">5</div>
+        <div>
+          <h4>The 50-product study &amp; production probes</h4>
+          <p>The final validation: <b>25 legacy + 25 canvas-rich products</b> — metadata completeness, structured-data validity, content parity — plus the full crawler matrix re-run against the production edge, without UAT's Basic Auth in the way.</p>
+        </div>
       </div>
     </div>
+    <p class="note-fine">Steps 1–3 recover the points the tag stack costs today — none of them touch marketplace code. The application-controlled numbers in this report are what production users get once the stack is cleaned.</p>
   </div>
 </section>
 
