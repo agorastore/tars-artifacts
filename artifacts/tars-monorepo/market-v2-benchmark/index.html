@@ -5,6 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Marketplace V2 vs V1 — The Platform Benchmark</title>
 <meta name="description" content="The complete old-vs-new Agorastore marketplace benchmark: performance, accessibility, SEO, AI readiness, social previews and architecture — every number measured on 21 July 2026.">
+<meta name="theme-color" content="#16294F">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%232B4D93'/%3E%3Ctext x='32' y='45' font-family='Arial,sans-serif' font-size='32' font-weight='700' text-anchor='middle' fill='%23FDBF62'%3EV2%3C/text%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
@@ -407,6 +409,25 @@ footer.end .src{display:flex;flex-wrap:wrap;gap:10px;margin-top:24px}
 footer.end .src a,footer.end .src span{font-family:var(--mono);font-size:12px;color:#C6D2EC;border:1px solid rgba(255,255,255,.2);border-radius:999px;padding:7px 15px;background:rgba(255,255,255,.05)}
 footer.end .src a:hover{color:#fff;border-color:#FDBF62;text-decoration:none}
 footer.end .fine{margin-top:34px;padding-top:20px;border-top:1px solid rgba(255,255,255,.14);font-size:12px;color:#8FA3CC;display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px}
+
+/* ============ mobile refinements ============ */
+@media(max-width:680px){
+  h2.title br,.hero h1 br{display:none}
+  .brow{grid-template-columns:1fr;gap:12px;padding:18px 0}
+  .brow .delta{text-align:left}
+  .rrow{grid-template-columns:1fr 64px;gap:10px 14px}
+  .rrow .lab{grid-column:1/-1}
+  .board{padding:6px 18px 20px}
+  .race-card,.navrace,.rubric,.stackwrap{padding-left:18px;padding-right:18px}
+  .aud-card,.pipe,.a11y-card{padding-left:20px;padding-right:20px}
+  .rstep{padding:20px 18px 18px}
+  .aud-card .what{min-height:0}
+  .surf-body{font-size:11.5px;padding:18px 16px}
+  .rubric .totals{gap:18px}
+  .rubric .tot .n{font-size:38px}
+  .dcompare .dch,.dcompare .dcs{padding-left:18px;padding-right:18px}
+  .dcompare th:first-child,.dcompare td:first-child{padding-left:18px}
+}
 
 /* reveal */
 .rv{opacity:0;transform:translateY(18px);transition:opacity .7s cubic-bezier(.22,1,.36,1),transform .7s cubic-bezier(.22,1,.36,1)}
