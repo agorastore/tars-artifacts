@@ -34,6 +34,10 @@ artifact for its own PR.
 
 ## Published artifacts
 
+- [Marketplace V2 vs V1 — the platform benchmark](https://agorastore.github.io/tars-artifacts/artifacts/tars-monorepo/market-v2-benchmark/) —
+  the complete old-vs-new marketplace comparison (performance, accessibility, SEO, AI/GEO
+  readiness, sitemap architecture, live-rendered social previews) with interactive races and
+  real captured assets. Companion PRs: tars-monorepo #154 and #155.
 - [PR #145 — DataList Saved Views](https://agorastore.github.io/tars-artifacts/artifacts/tars-monorepo/pr-145/) —
   tables that capture, restore and share their working state as named views, with previews
   decoupled from form state.
