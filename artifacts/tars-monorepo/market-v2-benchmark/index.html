@@ -62,7 +62,7 @@ header.hero .in{position:relative;max-width:1180px;margin:0 auto}
 .hero .host i{width:8px;height:8px;border-radius:50%;display:inline-block}
 .hero .host i.old{background:#8A93A8}
 .hero .host i.new{background:#FDBF62}
-.herostats{position:relative;max-width:1180px;margin:56px auto 0;display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:14px}
+.herostats{position:relative;max-width:1180px;margin:56px auto 0;display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:16px}
 .hstat{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.13);border-radius:14px;padding:20px 20px 17px;backdrop-filter:blur(4px)}
 .hstat .v{font-family:var(--disp);font-weight:700;font-size:clamp(26px,2.7vw,36px);line-height:1;letter-spacing:-.02em;font-variant-numeric:tabular-nums;white-space:nowrap}
 .hstat .v em{font-style:normal;color:#FDBF62}
@@ -71,6 +71,11 @@ header.hero .in{position:relative;max-width:1180px;margin:0 auto}
 /* ============ shells ============ */
 section.blk{padding:96px 24px 48px}
 section.blk .in{max-width:1180px;margin:0 auto}
+/* uniform vertical rhythm: every top-level block in a section is separated */
+section.blk .in > * + *{margin-top:24px}
+section.blk .in > h2.title{margin-top:16px}
+section.blk .in > p.lead + *{margin-top:44px}
+section.blk .in > .note-fine{margin-top:18px}
 .kick{display:flex;align-items:center;gap:12px;font-family:var(--mono);font-size:12px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--blue)}
 .kick::before{content:'';width:26px;height:2px;background:var(--amber);display:inline-block}
 h2.title{font-family:var(--disp);font-weight:700;font-size:clamp(28px,3.6vw,44px);letter-spacing:-.02em;line-height:1.08;margin:16px 0 14px;max-width:760px}
@@ -121,7 +126,7 @@ p.lead b{color:var(--ink)}
 /* ============ audiences / platform ============ */
 .aud-wrap{margin-top:44px}
 .aud-pills{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:24px}
-.aud-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.aud-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
 @media(max-width:860px){.aud-grid{grid-template-columns:1fr}}
 .aud-card{padding:26px 28px;position:relative;overflow:hidden}
 .aud-card .tagv{position:absolute;top:20px;right:22px;font-family:var(--mono);font-size:11px;font-weight:600;letter-spacing:.1em;padding:4px 12px;border-radius:999px}
@@ -137,7 +142,7 @@ p.lead b{color:var(--ink)}
 .fact{font-family:var(--mono);font-size:11.5px;padding:4px 11px;border-radius:7px;border:1px solid var(--line);color:var(--sub);background:#fff}
 .fact.bad{border-color:#F2CACA;background:var(--red-soft);color:var(--red)}
 .fact.good{border-color:#BFE8D2;background:var(--green-soft);color:var(--green)}
-.tenants{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:24px}
+.tenants{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:24px}
 @media(max-width:700px){.tenants{grid-template-columns:1fr}}
 .tenant{padding:20px 24px;display:flex;align-items:center;gap:16px}
 .tenant .dot{width:42px;height:42px;border-radius:12px;flex-shrink:0;display:flex;align-items:center;justify-content:center;color:#fff;font-family:var(--disp);font-weight:700;font-size:18px}
@@ -163,7 +168,7 @@ p.lead b{color:var(--ink)}
 .lane.v2 .lf{background:linear-gradient(90deg,#2E68E8,#1E56D6)}
 .lane .ms{font-family:var(--disp);font-weight:700;font-size:14.5px;font-variant-numeric:tabular-nums;text-align:right;color:var(--sub)}
 .lane.v2 .ms{color:var(--blue)}
-.minifacts{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px;margin-top:24px}
+.minifacts{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:16px;margin-top:24px}
 .mf{padding:18px 20px}
 .mf .v{font-family:var(--disp);font-weight:700;font-size:26px;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
 .mf .v.g{color:var(--green)}
@@ -211,7 +216,7 @@ details.tblx summary:hover{color:var(--ink)}
 .btn.sec:hover{color:var(--ink);border-color:var(--faint)}
 
 /* ============ discovery ============ */
-.pipes{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:44px}
+.pipes{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:44px}
 @media(max-width:920px){.pipes{grid-template-columns:1fr}}
 .pipe{padding:26px 28px;position:relative}
 .pipe h4{font-family:var(--disp);font-size:17px;font-weight:600;display:flex;align-items:center;gap:10px;margin-bottom:4px}
@@ -308,6 +313,9 @@ details.tblx summary:hover{color:var(--ink)}
 .rstep{display:grid;grid-template-columns:56px 1fr;gap:22px;padding:24px 28px 22px;align-items:start}
 @media(max-width:560px){.rstep{grid-template-columns:44px 1fr;gap:14px}}
 .rnum{width:44px;height:44px;border-radius:12px;background:linear-gradient(135deg,#182d5b,#2B4D93);color:#FDBF62;font-family:var(--disp);font-weight:700;font-size:19px;display:flex;align-items:center;justify-content:center}
+.rnum.done{background:linear-gradient(135deg,#12613A,#189A54);color:#fff}
+.rstep.shipped{border-color:#BFE8D2;background:linear-gradient(180deg,#FDFFFE,#F4FBF7)}
+.shipchip{font-family:var(--mono);font-size:10px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;background:var(--green-soft);color:var(--green);border-radius:999px;padding:3px 10px;margin-left:10px;vertical-align:2px;white-space:nowrap}
 .rstep h4{font-family:var(--disp);font-size:17.5px;font-weight:600;letter-spacing:-.01em;margin-bottom:6px}
 .rstep p{font-size:13.5px;color:var(--sub);line-height:1.65;max-width:860px}
 .rstep p b{color:var(--ink)}
@@ -317,7 +325,7 @@ details.tblx summary:hover{color:var(--ink)}
 .studio-controls{display:flex;flex-wrap:wrap;align-items:center;gap:16px 22px;margin:44px 0 26px}
 .studio-controls .grp{display:flex;flex-direction:column;gap:7px}
 .studio-controls .grp .gl{font-family:var(--mono);font-size:10.5px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--faint)}
-.stage{display:grid;grid-template-columns:1fr 1fr;gap:20px;align-items:start}
+.stage{display:grid;grid-template-columns:1fr 1fr;gap:16px;align-items:start}
 @media(max-width:920px){.stage{grid-template-columns:1fr}}
 .stage-col .colhead{display:flex;align-items:center;gap:10px;margin-bottom:12px}
 .stage-col .colhead .vt{font-family:var(--disp);font-weight:700;font-size:15px}
@@ -379,7 +387,7 @@ details.tblx summary:hover{color:var(--ink)}
 .studio-note b{color:#0C4A2B}
 
 /* ============ a11y ============ */
-.a11y-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:44px}
+.a11y-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:44px}
 @media(max-width:860px){.a11y-grid{grid-template-columns:1fr}}
 .a11y-card{padding:30px 32px}
 .a11y-card .score{font-family:var(--disp);font-weight:700;font-size:64px;letter-spacing:-.03em;line-height:1;font-variant-numeric:tabular-nums}
@@ -429,9 +437,9 @@ footer.end .fine{margin-top:34px;padding-top:20px;border-top:1px solid rgba(255,
   .dcompare th:first-child,.dcompare td:first-child{padding-left:18px}
 }
 
-/* reveal */
-.rv{opacity:0;transform:translateY(18px);transition:opacity .7s cubic-bezier(.22,1,.36,1),transform .7s cubic-bezier(.22,1,.36,1)}
-.rv.in{opacity:1;transform:none}
+/* reveal — opacity only: motion must never eat the gap between blocks */
+.rv{opacity:0;transition:opacity .65s cubic-bezier(.22,1,.36,1)}
+.rv.in{opacity:1}
 @media(prefers-reduced-motion:reduce){.rv{opacity:1;transform:none;transition:none}html{scroll-behavior:auto}.plink .dotmove{animation:none}}
 </style>
 </head>
@@ -824,7 +832,7 @@ footer.end .fine{margin-top:34px;padding-top:20px;border-top:1px solid rgba(255,
   <div class="in">
     <div class="kick">09 · The launch plan</div>
     <h2 class="title">The platform is done. Here's the plan to let it breathe.</h2>
-    <p class="lead">One honest finding remains: with the shared third-party stack enabled, V2 loses <b>8 desktop and 23 mobile Lighthouse points</b> (+1.25 MB, +28 requests on every cold page). The marketplace is no longer the bottleneck — the tag stack is. The plan attacks exactly that, in order:</p>
+    <p class="lead">One honest finding remains: with the shared third-party stack enabled, V2 loses <b>8 desktop and 23 mobile Lighthouse points</b> (+1.25 MB, +28 requests on every cold page). The marketplace is no longer the bottleneck — the tag stack is. The plan attacks exactly that, in order — and <b>step 2 has already shipped</b>:</p>
 
     <div class="road">
       <div class="card rstep rv">
@@ -835,12 +843,12 @@ footer.end .fine{margin-top:34px;padding-top:20px;border-top:1px solid rgba(255,
           <div class="rfacts"><span class="fact bad">today: consent UI = the measured LCP</span><span class="fact good">after: same legal behavior, ~zero weight</span></div>
         </div>
       </div>
-      <div class="card rstep rv">
-        <div class="rnum">2</div>
+      <div class="card rstep shipped rv">
+        <div class="rnum done">✓</div>
         <div>
-          <h4>Load GTM only after the page is measured</h4>
-          <p>Analytics events are <b>enqueued in a buffer from first paint</b>; GTM initializes only once the LCP metric has resolved, then flushes the queue. Full data, zero impact on Core Web Vitals — measurement stops competing with the content it measures. The same pass inventories every tag, duplicate tracker and pre-consent execution path in the gateway.</p>
-          <div class="rfacts"><span class="fact good">no event lost — only deferred</span><span class="fact good">scores reflect the marketplace, not the tags</span></div>
+          <h4>Load GTM only after the page is measured<span class="shipchip">Shipped · <a href="https://github.com/agorastore/tars-monorepo/pull/158" target="_blank" rel="noopener" style="color:inherit">PR #158</a></span></h4>
+          <p><b>Done.</b> GTM is now an optional runtime off the critical rendering path: application code pushes events immediately into a private queue, <b>consent stays the trigger for capture</b>, and once granted the container is only requested <b>after web-vitals finalizes the initial LCP</b>. No event is lost — only enqueued — and an untouched Lighthouse run never fetches, parses or executes GTM at all.</p>
+          <div class="rfacts"><span class="fact good">no event lost — only enqueued</span><span class="fact good">consent still gates capture</span><span class="fact good">GTM off the critical path</span></div>
         </div>
       </div>
       <div class="card rstep rv">
@@ -865,7 +873,7 @@ footer.end .fine{margin-top:34px;padding-top:20px;border-top:1px solid rgba(255,
         </div>
       </div>
     </div>
-    <p class="note-fine">Steps 1–3 recover the points the tag stack costs today — none of them touch marketplace code. The application-controlled numbers in this report are what production users get once the stack is cleaned.</p>
+    <p class="note-fine">Steps 1–3 recover the points the tag stack costs today — none of them touch marketplace code, and the GTM half is already done. The application-controlled numbers in this report are what production users get once the stack is cleaned.</p>
   </div>
 </section>
 
@@ -879,6 +887,7 @@ footer.end .fine{margin-top:34px;padding-top:20px;border-top:1px solid rgba(255,
       <a href="https://github.com/agorastore/tars-monorepo/blob/main/docs/reports/market-front-v2-vs-v1-benchmark-2026-07-21.md" target="_blank" rel="noopener">📄 Full benchmark report</a>
       <a href="https://github.com/agorastore/tars-monorepo/pull/154" target="_blank" rel="noopener">PR #154 — SEO &amp; readability</a>
       <a href="https://github.com/agorastore/tars-monorepo/pull/155" target="_blank" rel="noopener">PR #155 — product discovery</a>
+      <a href="https://github.com/agorastore/tars-monorepo/pull/158" target="_blank" rel="noopener">PR #158 — GTM after web vitals</a>
       <span>V2 build 849 · market-front-web:v356</span>
       <span>Protocol: 21 July 2026</span>
     </div>
