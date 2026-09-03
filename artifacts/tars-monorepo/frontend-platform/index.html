@@ -175,6 +175,57 @@ h2 em{font-style:normal;color:var(--blue)}
 .code .l.hl{background:rgba(30,86,214,.24);box-shadow:inset 3px 0 0 var(--amber)}
 .kw{color:var(--kw)}.str{color:var(--str)}.num{color:var(--num)}.fn{color:var(--fn)}.ty{color:var(--type)}.pr{color:var(--prop)}.cm{color:var(--cm);font-style:italic}.pun{color:var(--pun)}.tg{color:var(--tag)}.at{color:var(--type)}
 
+/* chips / stats / claims / tree */
+.chips{display:flex;flex-wrap:wrap;gap:12px}
+.chip{font-family:var(--mono);font-size:14.5px;padding:11px 18px;border-radius:999px;border:1px solid var(--line-2);background:#fff;color:var(--ink);box-shadow:var(--sh)}
+.chip.am{border-color:#F7DDB0;background:#FFF3DE;color:var(--amber-deep);font-weight:600}
+.stats{display:grid;grid-template-columns:repeat(6,1fr);gap:16px}
+.stat{background:#fff;border:1px solid var(--line);border-radius:14px;padding:18px 20px 16px;box-shadow:var(--sh)}
+.stat .v{font-family:var(--disp);font-weight:700;font-size:44px;line-height:1;letter-spacing:-.03em;color:var(--navy);font-variant-numeric:tabular-nums}
+.stat .v em{font-style:normal;color:var(--blue)}
+.stat .l{font-size:13px;color:var(--sub);margin-top:8px;line-height:1.4}
+.stat .l b{color:var(--ink);font-weight:600}
+.bench{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+.bench .stat .v{font-size:40px}
+.bench .stat .v small{font-size:20px;color:var(--faint);font-weight:600;margin-right:8px;letter-spacing:0}
+.bench .stat .v .up{font-size:15px;color:var(--green);margin-left:8px;letter-spacing:0;vertical-align:middle;font-weight:700}
+.claims{display:grid;grid-template-columns:1fr 1fr;gap:14px 22px;align-items:stretch}
+.claims .h{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--faint);font-weight:600;padding:0 4px}
+.claim{display:flex;gap:14px;align-items:flex-start;padding:14px 18px;border-radius:12px;border:1px solid var(--line);background:#fff;box-shadow:var(--sh);font-size:15px;line-height:1.5}
+.claim.no{border-style:dashed;background:#FBFBFD;color:var(--sub)}
+.claim.no i{font-style:normal;color:var(--red);font-weight:700;flex:none}
+.claim.yes i{font-style:normal;color:var(--green);font-weight:700;flex:none}
+.claim.yes b{color:var(--ink)}
+.ftree{font-family:var(--mono);font-size:15px;line-height:1.95;color:var(--ink)}
+.ftree .d{color:var(--navy);font-weight:600}.ftree .f{color:var(--ink)}.ftree .g{color:var(--faint)}.ftree .c{color:var(--sub);font-family:var(--body);font-size:13.5px;margin-left:18px}
+.ftree .new{color:var(--blue);font-weight:600}
+.owned{display:flex;flex-direction:column;gap:9px}
+.owned div{display:flex;gap:12px;align-items:baseline;font-size:14.5px;color:var(--sub);line-height:1.45}
+.owned div b{font-family:var(--mono);font-size:12.5px;color:var(--amber-deep);flex:none;min-width:150px}
+.matrix{border:1px solid var(--line);border-radius:14px;background:#fff;box-shadow:var(--sh);overflow:hidden;font-size:14.5px}
+.matrix div{display:grid;grid-template-columns:1.4fr repeat(4,1fr);align-items:center;border-top:1px solid var(--line)}
+.matrix div:first-child{border-top:0;background:#FAFBFD;font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--faint);font-weight:600}
+.matrix div>span{padding:13px 18px;text-align:center}
+.matrix div>span:first-child{text-align:left;font-weight:600;color:var(--ink)}
+.matrix i{font-style:normal;display:inline-block;width:28px;height:28px;border-radius:50%;line-height:28px;font-weight:700}
+.matrix i.on{background:var(--green-soft);color:var(--green)}.matrix i.off{background:#F1F3F8;color:var(--faint)}
+
+/* nuxt modules */
+.mods{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+.mod{background:#fff;border:1px solid var(--line);border-radius:16px;box-shadow:var(--sh);padding:18px 20px 16px;display:flex;flex-direction:column;gap:10px;position:relative;overflow:hidden}
+.mod::before{content:"";position:absolute;right:-40px;top:-60px;width:150px;height:150px;border-radius:50%;background:var(--mod,var(--blue-soft));opacity:.55}
+.mod .hd{display:flex;align-items:center;gap:12px;position:relative}
+.mod .ic{width:42px;height:42px;border-radius:12px;display:grid;place-items:center;font-family:var(--disp);font-weight:700;font-size:15px;color:#fff;background:var(--navy);flex:none;letter-spacing:-.02em}
+.mod .nm{font-family:var(--mono);font-size:12.5px;color:var(--sub)}
+.mod h4{font-family:var(--disp);font-size:19px;font-weight:700;letter-spacing:-.02em;line-height:1.15;position:relative}
+.mod p{font-size:13.5px;color:var(--sub);line-height:1.5;position:relative}
+.mod p b{color:var(--ink);font-weight:600}
+.mod .out{display:flex;flex-wrap:wrap;gap:6px;margin-top:auto;padding-top:8px;border-top:1px dashed var(--line)}
+.mod .out span{font-family:var(--mono);font-size:11.5px;padding:3px 9px;border-radius:6px;background:#0F1B33;color:#C6D2EC}
+.mod .out span.am{background:#FFF3DE;color:var(--amber-deep)}
+.modline{font-family:var(--mono);font-size:13.5px;color:var(--sub);background:#fff;border:1px solid var(--line);border-radius:10px;padding:10px 18px;display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.modline b{color:var(--navy);font-weight:600}.modline i{font-style:normal;color:var(--faint)}
+
 /* diagram */
 .diagram{padding:22px 26px;display:flex;flex-direction:column;min-height:0}
 .diagram svg{width:100%;height:100%;max-height:100%;display:block;flex:1;min-height:0;margin:auto 0}
@@ -319,6 +370,7 @@ svg .disp{font-family:var(--disp)}
     <div class="hstat"><div class="v">04 <em>Inventory</em></div><div class="l">hors-ligne : coquille · référentiel · brouillons</div></div>
   </div>
 </section>
+
 
 <!-- DIVIDER 01 -->
 <section class="slide hero divider" data-sec="Query">
@@ -481,6 +533,34 @@ await $client.items.deleteMany.call({ itemShortIds })
     <div class="card app"><div class="nm"><i class="gr"></i>inventory-front</div><div class="why">PWA terrain : référentiel disponible 24 h sans réseau.</div><div class="kv"><div><span>staleTime</span><span>24 h</span></div><div><span>reconnexion</span><span>refetch</span></div><div><span>retry</span><span>1 · mutations 3</span></div><div><span>persistance</span><span>IndexedDB</span></div><div><span>scope</span><span>session × shop</span></div></div></div>
   </div>
 </section>
+
+<!-- 1.3c intégrations -->
+<section class="slide" data-sec="Query">
+  <div class="kick"><span class="n">1.3</span>configuration globale · intégrations</div>
+  <h2>Les intégrations sont des <em>capacités</em>, pas des plugins.</h2>
+  <p class="focus">Désactivé par défaut dans la couche partagée. Une app active ; le plugin propriétaire lit la config avant d’injecter le moindre script.</p>
+  <div class="row" style="align-items:center">
+    <div class="matrix grow">
+      <div><span>capacité</span><span>customer</span><span>admin</span><span>market</span><span>inventory</span></div>
+      <div><span>googleTagManager</span><span><i class="on">✓</i></span><span><i class="off">–</i></span><span><i class="on">✓</i></span><span><i class="off">–</i></span></div>
+      <div><span>didomi · consentement</span><span><i class="on">✓</i></span><span><i class="off">–</i></span><span><i class="on">✓</i></span><span><i class="off">–</i></span></div>
+      <div><span>recaptcha</span><span><i class="on">✓</i></span><span><i class="on">✓</i></span><span><i class="on">✓</i></span><span><i class="on">✓</i></span></div>
+      <div><span>googlePlaces</span><span><i class="on">✓</i></span><span><i class="on">✓</i></span><span><i class="off">–</i></span><span><i class="off">–</i></span></div>
+      <div><span>markerIo · feedback</span><span><i class="on">✓</i></span><span><i class="on">✓</i></span><span><i class="on">✓</i></span><span><i class="off">–</i></span></div>
+    </div>
+    <div class="col" style="width:560px">
+      <div class="code" data-path="apps/inventory-front/app/config/global-injections.ts" data-lang="ts" data-hl="2-3,5-6"><script type="text/x-code">export const globalInjectionsConfig = defineGlobalInjectionsConfig(() => ({
+  googleTagManager: false,
+  didomi: false,
+  recaptcha: true,
+  googlePlaces: false,
+  markerIo: false,
+}))</script></div>
+      <div class="card feat" style="gap:8px"><h4><span class="ic">0</span>coût nul pour ce qu’on n’active pas</h4><p>Inventory ne paie ni analytics, ni consentement, ni Places, ni feedback — et garde reCAPTCHA. Étendre la couche partagée ne veut pas dire charger tout ce qu’elle contient.</p></div>
+    </div>
+  </div>
+</section>
+
 
 <!-- 1.4 useQuery -->
 <section class="slide" data-sec="Query">
@@ -1056,6 +1136,51 @@ const theme = computed(() => resolveMarketSeoTheme(props.themeKey).og)
     </div>
   </div>
 </section>
+<!-- 2.6 modules -->
+<section class="slide" data-sec="Marketplace">
+  <div class="kick"><span class="n">2.6</span>modules Nuxt</div>
+  <h2>Un module par corvée. <em>On configure, on ne code pas.</em></h2>
+  <p class="focus">Ce que chaque module sert en plus de la page — robots, sitemaps, images OG, JSON-LD, llms.txt — sans une ligne de plomberie dans market-front.</p>
+  <div class="modline"><i>nuxt.config.ts ·</i> <b>modules:</b> [ <span>'@nuxtjs/i18n'</span>, <span>'@nuxtjs/seo'</span>, <span>'nuxt-ai-ready'</span>, <span>'nuxt-vitalizer'</span>, <span>'@radya/nuxt-dompurify'</span>, <span>'nuxt-lazytube'</span>, <span>'vue3-carousel-nuxt'</span> ]</div>
+  <div class="mods">
+    <div class="mod" style="--mod:#EBF1FF">
+      <div class="hd"><div class="ic">seo</div><div><div class="nm">@nuxtjs/seo</div></div></div>
+      <h4>Le bundle SEO, piloté par la config</h4>
+      <p><b>Identité multi-tenant</b> selon l’hôte. Robots : filtres et pagination exclus, crawlers d’entraînement bloqués. <b>Sitemaps produits par mois</b>. Schema.org : <code>defineProduct</code>, <code>defineBreadcrumb</code>, <code>defineEvent</code>.</p>
+      <div class="out"><span>/robots.txt</span><span>/sitemap_index.xml</span><span>products-2026-09.xml</span><span>ld+json</span><span>canonical</span></div>
+    </div>
+    <div class="mod" style="--mod:#FFF3DE">
+      <div class="hd"><div class="ic" style="background:var(--amber-deep)">og</div><div><div class="nm">@nuxtjs/seo · og-image</div></div></div>
+      <h4>Une image de partage = un composant</h4>
+      <p><code>defineOgImage('Product.takumi', props)</code> — rendu serveur en <b>JPG 1200×630</b>, cache 7 jours, images restreintes à l’origine. Un nouveau type de page : un composant Vue de plus.</p>
+      <div class="out"><span>og:image</span><span>twitter:card</span><span class="am">Product.takumi.vue</span><span class="am">Market.takumi.vue</span></div>
+    </div>
+    <div class="mod" style="--mod:#E7F7EE">
+      <div class="hd"><div class="ic" style="background:var(--green)">ai</div><div><div class="nm">nuxt-ai-ready</div></div></div>
+      <h4>Lisible par les agents IA — à nos conditions</h4>
+      <p><b>Content-Signal</b> : recherche et usage à la demande autorisés, <b>entraînement refusé</b>. Un <code>llms.txt</code> par tenant — catalogue, catégories, index complet, et la règle : « la page fait foi ».</p>
+      <div class="out"><span>/llms.txt</span><span>/llms-full.txt</span><span>Content-Signal: ai-train=no</span></div>
+    </div>
+    <div class="mod" style="--mod:#EBF1FF">
+      <div class="hd"><div class="ic">i18n</div><div><div class="nm">@nuxtjs/i18n</div></div></div>
+      <h4>Cinq langues, plusieurs domaines, une route</h4>
+      <p><b>Locales par domaine</b>, préfixe de langue, chemins traduits : <code>/fr/produit</code>, <code>/nl/product</code>, <code>/de/produkt</code>. Mode <b>strictSeo</b> : hreflang et canonical toujours cohérents.</p>
+      <div class="out"><span>hreflang</span><span>x-default</span><span>defineI18nRoute()</span></div>
+    </div>
+    <div class="mod" style="--mod:#F1F3F8">
+      <div class="hd"><div class="ic" style="background:var(--navy-2)">⚡</div><div><div class="nm">nuxt-vitalizer</div></div></div>
+      <h4>Moins de préchargements, meilleur LCP</h4>
+      <p><code>disablePreloadLinks</code> : plus de cascade de <code>&lt;link rel=preload&gt;</code> qui concurrence l’image principale. Combiné au prefetch des liens <b>à l’interaction</b> plutôt qu’à la visibilité.</p>
+      <div class="out"><span>prefetchOn: interaction</span><span>0 preload chunks</span></div>
+    </div>
+    <div class="mod" style="--mod:#F1F3F8">
+      <div class="hd"><div class="ic" style="background:var(--sub)">ui</div><div><div class="nm">dompurify · lazytube · carousel</div></div></div>
+      <h4>Le reste du poids lourd</h4>
+      <p><code>v-sanitize-html</code> sur le HTML venu des traductions et du CMS. <code>&lt;LazyYoutube&gt;</code> : la vidéo de la galerie ne charge rien avant le clic. Carrousels prêts à l’emploi sur huit écrans.</p>
+      <div class="out"><span>v-sanitize-html</span><span>&lt;LazyYoutube&gt;</span><span>&lt;Carousel&gt;</span></div>
+    </div>
+  </div>
+</section>
 <style>
 .ogmock{position:relative;aspect-ratio:1200/630;border-radius:14px;background:linear-gradient(135deg,#182d5b,#2B4D93);color:#fff;padding:34px 38px;display:flex;flex-direction:column;gap:10px;overflow:hidden;box-shadow:var(--sh)}
 .ogmock::after{content:"";position:absolute;width:420px;height:420px;border-radius:50%;right:-160px;top:-200px;border:2px solid rgba(255,255,255,.12);background:rgba(253,191,98,.10)}
@@ -1110,6 +1235,7 @@ const theme = computed(() => resolveMarketSeoTheme(props.themeKey).og)
     <div><span class="mk">6</span><div><b>Rail</b>scrollspy · compteurs · point « modifié »</div></div>
   </div>
 </section>
+
 
 <!-- 3.2 VOUS / SHELL -->
 <section class="slide" data-sec="Admin">
@@ -1620,6 +1746,35 @@ const editor = useEntityDetailEditor({ dirty, reset: cancel, submit: save })
   <div class="facts"><span class="fact">déjà sur ce modèle : contrats · factures · items · organisations · séances · utilisateurs</span><span class="fact blue">tests montés : packages/shared-ui/test/entity-details</span></div>
 </section>
 
+<!-- 3.11b où ça va -->
+<section class="slide" data-sec="Admin">
+  <div class="kick"><span class="n">3.11</span>en pratique · où va le code</div>
+  <h2>Un dossier par entité. <em>Un fichier par rôle.</em></h2>
+  <p class="focus">Jamais pour un seul appelant : pas d’helper, de constante ou de type créé pour un consommateur unique. Une déclaration réutilisable vit chez son propriétaire.</p>
+  <div class="row" style="align-items:center">
+    <div class="card" style="padding:22px 28px;width:640px">
+      <div class="ftree">
+        <div><span class="d">entities/organisations/</span></div>
+        <div><span class="g">├── </span><span class="f">schema.tsx</span><span class="c">liste + bloc <code>embed</code></span></div>
+        <div><span class="g">├── </span><span class="f">action.ts</span><span class="c">opérations déclenchées par l’utilisateur</span></div>
+        <div><span class="g">├── </span><span class="f">render.tsx</span><span class="c">cellules, statuts</span></div>
+        <div><span class="g">├── </span><span class="f">filter.ts</span><span class="c">filtres du domaine</span></div>
+        <div><span class="g">├── </span><span class="f">utils.ts · constants.ts · types.ts</span><span class="c">valeurs et types canoniques</span></div>
+        <div><span class="g">└── </span><span class="d new">detail/</span></div>
+        <div><span class="g">    ├── </span><span class="f new">schema.tsx</span><span class="c">sections éditables</span></div>
+        <div><span class="g">    ├── </span><span class="f new">action.ts</span><span class="c">actions de la fiche</span></div>
+        <div><span class="g">    ├── </span><span class="f new">render.tsx</span><span class="c">adaptateurs de champs custom</span></div>
+        <div><span class="g">    └── </span><span class="d new">composables/</span><span class="c">le loader étagé</span></div>
+      </div>
+    </div>
+    <div class="col grow" style="gap:14px">
+      <div class="card feat" style="gap:8px"><h4><span class="ic">?</span>« où est-ce que ça va ? »</h4><p>Une colonne → <code>render.tsx</code>. Un filtre → <code>filter.ts</code>. Une action de ligne → <code>action.ts</code>. Une section de fiche → <code>detail/schema.tsx</code>. Un chargement → <code>detail/composables</code>.</p></div>
+      <div class="card feat" style="gap:8px"><h4><span class="ic">↺</span>corriger le propriétaire</h4><p>Un comportement faux dans une table embarquée se corrige dans le schéma canonique — la projection suit. Idem pour un champ distant : dans <code>shared-business/entities/…/fields.tsx</code>.</p></div>
+      <div class="card feat" style="gap:8px"><h4><span class="ic">28</span>dossiers d’entité en admin</h4><p>Le même plan pour chacun. Les sous-dossiers (<code>create/</code>, <code>merge/</code>, <code>users/</code>…) tiennent les écrans satellites.</p></div>
+    </div>
+  </div>
+</section>
+
 <!-- 3.12 SELECTEURS DISTANTS -->
 <section class="slide" data-sec="Admin">
   <div class="kick"><span class="n">3.12</span>autres briques · options distantes du moteur de formulaire</div>
@@ -1972,6 +2127,7 @@ async function preload() {               // appelé au login
     </svg>
   </div>
 </section>
+
 
 <!-- CLOSING -->
 <section class="slide hero" data-sec="">
