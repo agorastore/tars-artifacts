@@ -34,6 +34,10 @@ artifact for its own PR.
 
 ## Published artifacts
 
+- [TARS Frontend Platform](https://agorastore.github.io/tars-artifacts/artifacts/tars-monorepo/frontend-platform/) —
+  a 41-slide presentation of the frontend platform behind Market Front V2, Admin V2 and
+  Inventory, covering typed server state, declarative page primitives, catalogue architecture
+  and offline-first workflows.
 - [Marketplace V2 vs V1 — the platform benchmark](https://agorastore.github.io/tars-artifacts/artifacts/tars-monorepo/market-v2-benchmark/) —
   the complete old-vs-new marketplace comparison (performance, accessibility, SEO, AI/GEO
   readiness, sitemap architecture, live-rendered social previews) with interactive races and

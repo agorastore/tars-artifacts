@@ -1,0 +1,2077 @@
+<!doctype html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#16294F">
+<title>Plateforme frontend Tars</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#F5F6FA; --card:#FFFFFF; --ink:#0C1526; --sub:#55617A; --faint:#8A93A8;
+  --line:#E4E8F0; --line-2:#D5DBE7;
+  --navy:#16294F; --navy-2:#1E3A73; --blue:#1E56D6; --blue-soft:#EBF1FF;
+  --amber:#F5A93C; --amber-deep:#D98F1F; --amber-light:#FDBF62;
+  --green:#189A54; --green-soft:#E7F7EE; --red:#D64545;
+  --disp:'Space Grotesk',sans-serif; --body:'Inter',system-ui,sans-serif; --mono:'JetBrains Mono',ui-monospace,monospace;
+  --sh:0 1px 2px rgba(12,21,38,.05),0 8px 28px -12px rgba(12,21,38,.10);
+  --r:16px;
+  --code-bg:#0F1B33; --code-fg:#D6E1F5; --code-line:#1C2B4A;
+  --kw:#C792EA; --str:#9FE0A5; --num:#FDBF62; --fn:#82AAFF; --type:#FFCB6B; --prop:#89DDFF; --cm:#6F82A8; --pun:#9AA8C7; --tag:#F78C6C;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{height:100%;background:var(--bg);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.5;-webkit-font-smoothing:antialiased;overflow:hidden}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+b,strong{font-weight:700}
+code{font-family:var(--mono);font-size:.88em;background:#EDF0F6;padding:1px 6px;border-radius:6px;color:var(--navy)}
+@media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+
+/* stage */
+#viewport{position:fixed;inset:0;background:var(--bg);overflow:hidden}
+#stage{position:absolute;left:50%;top:50%;width:1600px;height:900px;margin:-450px 0 0 -800px;transform-origin:center center;background:var(--bg)}
+.slide{position:absolute;inset:0;padding:60px 84px 64px;display:none;flex-direction:column;gap:22px;background:var(--bg)}
+.slide.active{display:flex;animation:fade .25s ease}
+@keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+#progress{position:absolute;left:0;right:0;bottom:0;height:3px;background:var(--line)}
+#progress i{display:block;height:100%;background:linear-gradient(90deg,var(--blue),var(--amber));width:0;transition:width .3s}
+.foot{position:absolute;left:84px;right:84px;bottom:26px;display:flex;justify-content:space-between;font-family:var(--mono);font-size:11.5px;color:var(--faint);letter-spacing:.04em}
+.foot b{color:var(--blue);font-weight:600}
+
+/* headings */
+.kick{display:flex;align-items:center;gap:12px;font-family:var(--mono);font-size:12px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--blue)}
+.kick::before{content:'';width:26px;height:2px;background:var(--amber);display:inline-block}
+.kick .n{color:var(--amber-deep)}
+h1,h2{font-family:var(--disp);font-weight:700;letter-spacing:-.025em;line-height:1.05;text-wrap:balance}
+h1{font-size:72px}
+h2{font-size:42px;max-width:1300px}
+h2 code{font-size:.75em;background:#E6EBF5;vertical-align:middle}
+h2 em{font-style:normal;color:var(--blue)}
+.lead{font-size:18px;color:var(--sub);max-width:1100px;line-height:1.6}
+.focus{font-size:16px;color:var(--sub);margin-top:-10px;max-width:1200px}
+.focus b{color:var(--ink);font-weight:600}
+.focus code{font-size:.85em}
+.lead b{color:var(--ink)}
+.body{flex:1;min-height:0;display:flex;flex-direction:column;justify-content:center;gap:18px}
+.body>.row{flex:1 1 auto;min-height:0}
+.body>.cols2,.body>.cols3,.body>.cols4{min-height:0}
+
+.tree{white-space:nowrap;overflow:hidden}
+.row{display:flex;gap:22px;min-height:0;flex:1;align-items:flex-start}
+.row>*{min-width:0;max-height:100%}
+.row>.code{flex:1 1 0;width:auto}
+.row>.col>.code{flex-shrink:1}
+.row>.diagram{align-self:center}
+.grow{flex:1}
+.col{display:flex;flex-direction:column;gap:14px;min-height:0;max-height:100%}
+.col>.code{flex:0 1 auto;min-height:0}
+.row>.code{max-height:100%}
+.cols2{display:grid;grid-template-columns:1fr 1fr;gap:20px;min-height:0;align-items:start}
+.cols3{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;min-height:0;align-items:start}
+.cols2.eq,.cols3.eq,.cols4.eq{align-items:stretch}
+.cols4{display:grid;grid-template-columns:repeat(4,1fr);gap:18px;min-height:0;align-items:start}
+.txt{font-size:15px;color:var(--sub);line-height:1.6}
+.txt b{color:var(--ink)}
+.txt code{font-size:.86em}
+
+/* hero / dividers */
+.slide.hero{background:linear-gradient(135deg,#182d5b 0%,#2B4D93 62%,#203d77 100%);color:#fff;justify-content:center;overflow:hidden}
+.hero .orb{position:absolute;border:2px solid rgba(255,255,255,.12);border-radius:999px;background:rgba(253,191,98,.10)}
+.hero .orb.a{width:760px;height:760px;top:-340px;right:-240px}
+.hero .orb.b{width:600px;height:600px;bottom:-360px;right:-120px;background:rgba(255,255,255,.05)}
+.hero .orb.c{width:480px;height:480px;bottom:-300px;left:-200px;background:rgba(255,255,255,.04)}
+.hero>*{position:relative}
+.hero .eyebrow{font-family:var(--mono);font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:var(--amber-light);font-weight:500}
+.hero h1{margin:18px 0 20px;max-width:1100px}
+.hero .sub{font-size:21px;color:#C6D2EC;max-width:900px;line-height:1.6}
+.hero .sub b{color:#fff;font-weight:600}
+.hero .hosts{display:flex;flex-wrap:wrap;gap:10px;margin-top:26px}
+.hero .host{display:inline-flex;align-items:center;gap:8px;font-family:var(--mono);font-size:12.5px;padding:8px 14px;border-radius:999px;border:1px solid rgba(255,255,255,.18);color:#C6D2EC;background:rgba(255,255,255,.05)}
+.hero .host i{width:8px;height:8px;border-radius:50%;background:var(--amber-light)}
+.herostats{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-top:40px}
+.hstat{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.13);border-radius:14px;padding:20px 20px 17px}
+.hstat .v{font-family:var(--disp);font-weight:700;font-size:38px;line-height:1;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+.hstat .v em{font-style:normal;color:var(--amber-light)}
+.hstat .l{font-size:13px;color:#B8C6E4;margin-top:8px;line-height:1.4}
+.divider .num{font-family:var(--disp);font-weight:700;font-size:220px;line-height:.85;color:var(--amber-light);letter-spacing:-.05em;opacity:.9}
+.divider h1{font-size:84px;margin:10px 0 16px}
+.divider .sub{font-size:22px}
+.hero>.foot{position:absolute;color:#8FA3CC}.hero .foot b{color:var(--amber-light)}
+
+/* cards */
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--sh)}
+.api{display:flex;flex-direction:column;min-height:0;overflow:auto}
+.api .hd{background:#FAFBFD;border-bottom:1px solid var(--line);padding:9px 20px;font-family:var(--mono);font-size:10.5px;text-transform:uppercase;letter-spacing:.1em;color:var(--faint);font-weight:600;flex-shrink:0}
+.api .hd:first-child{border-radius:var(--r) var(--r) 0 0}
+.api .r{display:grid;grid-template-columns:230px 1fr;gap:14px;padding:11px 20px;border-bottom:1px solid var(--line);align-items:start}
+.api .r:last-child{border-bottom:none}
+.api.tight .r{grid-template-columns:190px 1fr;padding:9px 18px}
+.api .k{font-family:var(--mono);font-size:12.5px;font-weight:600;color:var(--navy);word-break:break-word}
+.api .k small{display:block;font-weight:500;color:var(--faint);margin-top:2px;font-size:11px}
+.api .d{font-size:13.5px;color:var(--sub);line-height:1.5}
+.api .d b{color:var(--ink)}
+.feat{padding:20px 22px;display:flex;flex-direction:column;gap:8px}
+.feat h4{font-family:var(--disp);font-size:17px;font-weight:600;letter-spacing:-.01em;display:flex;align-items:center;gap:10px}
+.feat h4 .ic{width:30px;height:30px;border-radius:8px;background:var(--blue-soft);color:var(--blue);display:inline-flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:12px;font-weight:700;flex-shrink:0}
+.feat h4 .ic.am{background:#FFF3DE;color:var(--amber-deep)}
+.feat p{font-size:14px;color:var(--sub);line-height:1.55}
+.feat p b{color:var(--ink)}
+.feat .big{font-family:var(--disp);font-size:40px;font-weight:700;color:var(--ink);line-height:1;letter-spacing:-.02em}
+.step{padding:22px 24px;display:flex;flex-direction:column;gap:8px}
+.step .n{font-family:var(--disp);font-weight:700;font-size:34px;color:var(--blue);line-height:1}
+.step .n.am{color:var(--amber-deep)}
+.step h4{font-family:var(--disp);font-size:18px;font-weight:600}
+.step p{font-size:14px;color:var(--sub);line-height:1.55}
+.app{padding:20px 22px}
+.app .nm{font-family:var(--disp);font-weight:700;font-size:18px;display:flex;align-items:center;gap:10px}
+.app .nm i{width:10px;height:10px;border-radius:3px;background:var(--blue);display:inline-block}
+.app .nm i.am{background:var(--amber)}.app .nm i.gr{background:var(--green)}.app .nm i.nv{background:var(--navy)}
+.app .why{font-size:13.5px;color:var(--sub);margin:10px 0 12px;line-height:1.5;min-height:60px}
+.app .kv div{display:flex;justify-content:space-between;gap:10px;font-size:13px;padding:7px 0;border-top:1px solid var(--line)}
+.app .kv div span:first-child{color:var(--faint);font-family:var(--mono);font-size:11.5px}
+.app .kv div span:last-child{font-weight:600;text-align:right}
+.facts{display:flex;gap:10px;flex-wrap:wrap;flex:none}
+.fact{font-family:var(--mono);font-size:12px;padding:5px 12px;border-radius:7px;border:1px solid var(--line);color:var(--sub);background:#fff;display:inline-block}
+.fact.blue{border-color:#C6D7FA;background:var(--blue-soft);color:var(--blue)}
+.fact.am{border-color:#F7DDB0;background:#FFF3DE;color:var(--amber-deep)}
+.cmp{width:100%;border-collapse:collapse;font-size:14px}
+.cmp th{font-family:var(--mono);font-size:10.5px;text-transform:uppercase;letter-spacing:.08em;color:var(--faint);font-weight:600;text-align:left;padding:12px 18px;border-bottom:1px solid var(--line);background:#FAFBFD}
+.cmp td{padding:12px 18px;border-bottom:1px solid var(--line);color:var(--sub);vertical-align:top;line-height:1.5}
+.cmp td:first-child{color:var(--ink);font-weight:600;white-space:nowrap}
+.cmp tr:last-child td{border-bottom:none}
+.cmp code{font-size:.86em}
+
+/* code */
+.code{background:var(--code-bg);color:var(--code-fg);border-radius:14px;overflow:hidden;font-family:var(--mono);font-size:15px;line-height:1.8;box-shadow:var(--sh);display:flex;flex-direction:column;min-height:0;width:100%}
+.code.sm{font-size:14px;line-height:1.75}
+.code.xs{font-size:12.6px;line-height:1.7}
+.code.lg{font-size:16.5px;line-height:1.8}
+.code header{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:0 10px 0 18px;min-height:40px;border-bottom:1px solid var(--code-line);font-size:11.5px;color:#8FA3CC;flex-shrink:0;cursor:zoom-in;user-select:none}
+.code header .path{color:#C6D2EC;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.code header .hr{display:flex;align-items:center;gap:10px;flex-shrink:0}
+.code header .lang{font-size:10.5px;text-transform:uppercase;letter-spacing:.1em;color:var(--amber-light);flex-shrink:0}
+.code header .zoom{appearance:none;border:1px solid transparent;background:transparent;color:#8FA3CC;font:inherit;font-size:15px;line-height:1;width:26px;height:26px;border-radius:7px;cursor:zoom-in;display:grid;place-items:center;transition:.15s}
+.code:hover header .zoom{border-color:#33456B;color:#fff}
+.code header .zoom:hover{background:#1E56D6;border-color:#1E56D6;color:#fff}
+/* tabs */
+.code header .tabs{display:flex;align-items:stretch;gap:2px;min-width:0;overflow:hidden;align-self:stretch}
+.code header .tab{appearance:none;border:0;background:transparent;color:#8FA3CC;font:inherit;font-size:11.5px;font-weight:500;padding:0 14px;cursor:pointer;position:relative;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:420px;transition:.15s}
+.code header .tab:hover{color:#C6D2EC;background:rgba(255,255,255,.03)}
+.code header .tab.on{color:#fff}
+.code header .tab.on::after{content:"";position:absolute;left:10px;right:10px;bottom:-1px;height:2px;background:var(--amber);border-radius:2px 2px 0 0}
+.code header .tab .i{display:inline-grid;place-items:center;width:16px;height:16px;border-radius:4px;background:#26365A;color:#B8C6E4;font-size:9.5px;font-weight:700;margin-right:8px;vertical-align:-3px}
+.code header .tab.on .i{background:var(--amber);color:#0F1B33}
+.code>pre:not(.on){display:none}
+/* zoom overlay */
+#zoom{position:absolute;inset:0;z-index:60;display:none;align-items:center;justify-content:center;background:rgba(12,21,38,.66);backdrop-filter:blur(7px);padding:40px}
+#zoom.on{display:flex}
+#zoom .code{width:min(100%,1480px);max-height:100%;font-size:19px;line-height:1.85;box-shadow:0 40px 120px -20px rgba(0,0,0,.7),0 0 0 1px rgba(255,255,255,.08)}
+#zoom .code header{min-height:52px;font-size:13px;cursor:default;padding-right:14px}
+#zoom .code header .tab{font-size:13px;padding:0 18px}
+#zoom .code header .lang{font-size:12px}
+#zoom .code header .zoom{width:32px;height:32px;font-size:18px;cursor:pointer;border-color:#33456B;color:#fff}
+#zoom .code pre{padding:26px 32px}
+#zoom .code .l{padding:0 10px;margin:0 -10px}
+#zoom .hint{position:absolute;bottom:18px;left:0;right:0;text-align:center;color:#B8C6E4;font-size:12.5px;letter-spacing:.04em}
+.code pre{margin:0;padding:18px 22px;overflow:auto;tab-size:2;flex:1;min-height:0;scrollbar-width:thin}
+.code pre::-webkit-scrollbar{width:8px;height:8px}.code pre::-webkit-scrollbar-thumb{background:#33456B;border-radius:8px}
+.code .l{display:block;white-space:pre;padding:0 8px;margin:0 -8px;border-radius:4px}
+.code .l.hl{background:rgba(30,86,214,.24);box-shadow:inset 3px 0 0 var(--amber)}
+.kw{color:var(--kw)}.str{color:var(--str)}.num{color:var(--num)}.fn{color:var(--fn)}.ty{color:var(--type)}.pr{color:var(--prop)}.cm{color:var(--cm);font-style:italic}.pun{color:var(--pun)}.tg{color:var(--tag)}.at{color:var(--type)}
+
+/* diagram */
+.diagram{padding:22px 26px;display:flex;flex-direction:column;min-height:0}
+.diagram svg{width:100%;height:100%;max-height:100%;display:block;flex:1;min-height:0;margin:auto 0}
+.diagram .cap{font-size:13px;color:var(--faint);margin-top:12px;text-align:center;flex:none}
+svg text{font-family:var(--body)}
+svg .mono{font-family:var(--mono)}
+svg .disp{font-family:var(--disp)}
+
+/* overview */
+#overview{position:fixed;inset:0;background:rgba(245,246,250,.97);display:none;padding:40px;overflow:auto;z-index:50}
+#overview.on{display:block}
+#overview .grid{display:grid;grid-template-columns:repeat(6,1fr);gap:14px}
+#overview .th{border:1px solid var(--line-2);border-radius:10px;background:#fff;padding:12px;font-size:12px;cursor:pointer;min-height:86px;display:flex;flex-direction:column;gap:6px}
+#overview .th:hover{border-color:var(--blue)}
+#overview .th .i{font-family:var(--mono);color:var(--faint);font-size:11px}
+#overview .th .t{font-family:var(--disp);font-size:14px;font-weight:600;line-height:1.25}
+</style>
+<div id="viewport"><div id="stage">
+
+<style>
+.tree{font-family:var(--mono);font-size:14.5px;line-height:1.8;color:var(--ink)}
+.tree .q{color:var(--blue);font-weight:600}.tree .m{color:var(--amber-deep);font-weight:600}.tree .g{color:var(--faint)}
+.callouts{display:flex;flex-direction:column;gap:10px}
+.callout{display:grid;grid-template-columns:34px 1fr;gap:12px;align-items:start;padding:12px 14px;background:#fff;border:1px solid var(--line);border-radius:12px;box-shadow:var(--sh)}
+.callout .n{width:34px;height:34px;border-radius:9px;background:var(--navy);color:var(--amber-light);font-family:var(--disp);font-weight:700;font-size:15px;display:flex;align-items:center;justify-content:center}
+.callout b{font-family:var(--disp);font-size:15.5px;font-weight:600;display:block}
+.callout span{font-size:13.5px;color:var(--sub);line-height:1.5}
+.marker{position:absolute;width:26px;height:26px;border-radius:50%;background:var(--amber);color:var(--navy);font-family:var(--disp);font-weight:700;font-size:13px;display:flex;align-items:center;justify-content:center;box-shadow:0 0 0 3px rgba(245,169,60,.25)}
+</style><style>
+/* ===== fiche mock (Entity Details) ===== */
+.fiche{position:relative;min-height:0;flex:none;border:1px solid var(--line-2);border-radius:14px;background:#fff;box-shadow:var(--sh);display:flex;flex-direction:column;font-size:13px;color:var(--ink)}
+.fiche .fh{display:flex;justify-content:space-between;align-items:center;padding:14px 18px;border-bottom:1px solid var(--line);gap:14px}
+.fiche .fh .t{font-family:var(--disp);font-weight:700;font-size:18px}
+.fiche .fh .meta{display:flex;gap:10px;align-items:center;font-family:var(--mono);font-size:11px;color:var(--faint);margin-top:3px}
+.fiche .fh .st{background:var(--green-soft);color:var(--green);padding:1px 7px;border-radius:4px;font-weight:600}
+.fiche .fh .act{display:flex;gap:6px}
+.fiche .fh .act i{font-style:normal;font-size:11.5px;padding:4px 10px;border-radius:6px;border:1px solid var(--line-2);color:var(--sub)}
+.fiche .stats{display:flex;gap:10px;padding:10px 18px;border-bottom:1px solid var(--line);background:#FAFBFD}
+.fiche .stats div{flex:1;background:#fff;border:1px solid var(--line);border-radius:8px;padding:8px 10px}
+.fiche .stats small{display:block;font-family:var(--mono);font-size:9.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--faint)}
+.fiche .stats b{font-family:var(--disp);font-size:16px}
+.fiche .fb{display:grid;grid-template-columns:1fr 210px;grid-template-rows:minmax(0,1fr);flex:1;min-height:0}
+.fiche .rail{overflow:hidden;min-height:0}
+.fiche .doc{padding:12px 14px;display:flex;flex-direction:column;gap:10px;background:#FAFBFD;min-height:0;overflow:hidden;border-radius:0 0 0 14px}
+.fiche .fields.f4{grid-template-columns:repeat(4,1fr)}
+.fiche.lg .stats div{padding:5px 10px}.fiche.lg .stats b{font-size:15px}
+.fiche .rail{border-radius:0 0 14px 0}
+.fiche .grp{font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--faint);font-weight:600;margin:2px 0 -4px}
+.fiche .sec{position:relative;border:1px solid var(--line);border-radius:10px;padding:12px 14px;background:#fff;display:flex;flex-direction:column;gap:8px}
+.fiche .sec .sh{display:flex;justify-content:space-between;align-items:center}
+.fiche .sec .sh b{font-weight:600;font-size:13.5px}
+.fiche .sec .sh em{font-style:normal;font-family:var(--mono);font-size:10.5px;color:var(--amber-deep)}
+.fiche .sec .sh small{font-family:var(--mono);font-size:10.5px;background:#EDF0F6;border-radius:999px;padding:1px 7px;color:var(--sub)}
+.fiche .sec.dirty{border-color:var(--amber);box-shadow:0 0 0 3px #FDEBC8}
+.fiche .sec.def{border-style:dashed;background:#FCFCFD}
+.fiche .fields{display:grid;grid-template-columns:1fr 1fr;gap:6px 12px}
+.fiche .fld{display:flex;flex-direction:column;gap:3px}
+.fiche .fld label{font-size:10.5px;color:var(--faint)}
+.fiche .fld span{border:1px solid var(--line-2);border-radius:6px;padding:5px 8px;font-size:12px;background:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.fiche .fld span.ch{border-color:var(--amber);background:#FFF8EC}
+.fiche .ft{display:flex;justify-content:flex-end;gap:6px;padding-top:8px;border-top:1px solid var(--line)}
+.fiche .ft i{font-style:normal;font-size:11.5px;padding:4px 10px;border-radius:6px;border:1px solid var(--line-2)}
+.fiche .ft i.p{background:var(--navy);color:#fff;border-color:var(--navy)}
+.fiche .ft i.dis{opacity:.45}
+.fiche .tb{border:1px solid var(--line);border-radius:6px;overflow:hidden;font-size:11.5px}
+.fiche .tb div{display:grid;grid-template-columns:90px 1fr 70px;gap:8px;padding:6px 10px;border-top:1px solid var(--line);color:var(--sub)}
+.fiche .tb div:first-child{border-top:0;background:#FAFBFD;font-family:var(--mono);font-size:9.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--faint)}
+.fiche .tb div span:first-child{font-family:var(--mono);color:var(--ink)}
+.fiche .tb i{font-style:normal;font-family:var(--mono);font-size:9.5px;padding:1px 6px;border-radius:4px;background:#EDF0F6;text-align:center}
+.fiche .tb i.ok{background:var(--green-soft);color:var(--green)}
+.fiche .tf{display:flex;justify-content:space-between;font-size:10.5px;color:var(--faint)}
+.fiche .tf b{color:var(--blue);font-weight:600}
+.fiche .skel{height:10px;border-radius:4px;background:linear-gradient(90deg,#EEF0F5,#E2E6EE,#EEF0F5);background-size:200% 100%;animation:sh 1.2s linear infinite}
+@keyframes sh{to{background-position:-200% 0}}
+.fiche .rail{border-left:1px solid var(--line);padding:12px 10px;display:flex;flex-direction:column;gap:2px;background:#fff}
+.fiche .rail h6{font-family:var(--mono);font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--faint);margin:8px 0 3px;font-weight:600}
+.fiche .rail div{display:flex;justify-content:space-between;align-items:center;padding:5px 8px;border-radius:6px;color:var(--sub);font-size:12.5px}
+.fiche .rail div.cur{background:var(--blue-soft);color:var(--blue);font-weight:600}
+.fiche .rail small{font-family:var(--mono);font-size:10px;background:#EDF0F6;border-radius:999px;padding:0 6px;min-width:20px;text-align:center}
+.fiche .rail small.ld{width:22px;height:12px;border-radius:999px;background:linear-gradient(90deg,#EEF0F5,#E2E6EE,#EEF0F5);background-size:200% 100%;animation:sh 1.2s linear infinite}
+.fiche .rail .dot{width:7px;height:7px;border-radius:50%;background:var(--amber);display:inline-block;margin-left:6px}
+.fiche.lg{font-size:13.5px}
+.fiche.lg .sec{padding:9px 12px;gap:6px}
+.fiche.lg .fld span{padding:4px 8px}
+.fiche.lg .stats{padding:8px 16px}
+.fiche.lg .fh{padding:12px 16px}
+.fiche.lg .doc{gap:8px;padding:10px 12px}
+.fiche .rail{position:relative}
+.fiche.lg .fh .t{font-size:22px}
+.mk{position:absolute;width:28px;height:28px;border-radius:50%;background:var(--amber);color:var(--navy);font-family:var(--disp);font-weight:700;font-size:14px;display:flex;align-items:center;justify-content:center;box-shadow:0 0 0 4px rgba(245,169,60,.28);z-index:3}
+.fiche .mk{position:absolute;width:28px;height:28px;border-radius:50%;background:var(--amber);color:var(--navy);font-family:var(--disp);font-weight:700;font-size:14px;display:flex;align-items:center;justify-content:center;box-shadow:0 0 0 4px rgba(245,169,60,.28);z-index:3}
+.legend{display:grid;grid-template-columns:repeat(6,1fr);gap:14px;flex:none}
+.legend>div{display:flex;gap:10px;align-items:flex-start;font-size:13px;color:var(--sub);line-height:1.4}
+.legend div b{display:block;color:var(--ink);font-family:var(--disp);font-size:13.5px;font-weight:600}
+.legend>div{font-size:12.5px;line-height:1.35}
+.legend .mk{position:static!important;flex:none;box-shadow:none;width:26px;height:26px;font-size:13px}
+.stage-tag{display:inline-block;font-family:var(--mono);font-size:9.5px;letter-spacing:.06em;padding:1px 6px;border-radius:4px;font-weight:600}
+.stage-tag.es{background:#1E56D6;color:#fff}.stage-tag.bg{background:#DCE4FB;color:#1E3A73}.stage-tag.df{background:#EDF0F6;color:var(--faint);border:1px dashed var(--line-2)}
+/* mini type illustrations */
+.types{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+.type{display:flex;flex-direction:column;gap:10px}
+.type .ill{border:1px solid var(--line-2);border-radius:10px;background:#fff;padding:12px;min-height:150px;display:flex;flex-direction:column;gap:8px;font-size:11.5px;color:var(--sub);box-shadow:var(--sh)}
+.type .ill b{font-size:12.5px;color:var(--ink)}
+.type .ill .ln{height:26px;border:1px solid var(--line-2);border-radius:5px}
+.type .ill .row2{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.type .ill .btns{display:flex;justify-content:flex-end;gap:5px;margin-top:auto;padding-top:6px;border-top:1px solid var(--line)}
+.type .ill .btns i{font-style:normal;font-size:10px;padding:3px 8px;border-radius:5px;border:1px solid var(--line-2)}
+.type .ill .btns i.p{background:var(--navy);color:#fff;border-color:var(--navy)}
+.type .ill .tr{display:grid;grid-template-columns:1fr 2fr 1fr;gap:6px;padding:4px 0;border-top:1px solid var(--line);font-size:10.5px}
+.type .ill .thumbs{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.type .ill .thumbs i{display:block;aspect-ratio:1;background:#EEF0F5;border-radius:6px}
+.type .ill .custom{flex:1;border:1px dashed var(--line-2);border-radius:6px;display:flex;align-items:center;justify-content:center;color:var(--faint);font-family:var(--mono);font-size:11px}
+.type h4{font-family:var(--disp);font-size:16px;font-weight:600}
+.type h4 code{font-size:.78em}
+.type p{font-size:13px;color:var(--sub);line-height:1.5}
+/* state flow */
+.flow{display:grid;grid-template-columns:1fr 28px 1fr 28px 1fr 28px 1fr;gap:10px;align-items:center}
+.flow .arr{color:var(--blue);font-size:22px;text-align:center}
+.flow .state{display:flex;flex-direction:column;gap:10px}
+.flow .state h4{font-family:var(--disp);font-size:16px;font-weight:600;display:flex;align-items:center;gap:8px}
+.flow .state h4 .k{font-family:var(--mono);font-size:11px;color:var(--amber-deep);font-weight:600}
+.flow .state p{font-size:13px;color:var(--sub);line-height:1.5}
+.flow .fiche{font-size:15px}
+.flow .fiche .fields{grid-template-columns:1fr;gap:8px}
+.flow .fiche .fld span{padding:8px 10px;font-size:14px}
+.flow .fiche .sec{padding:14px 16px;gap:10px}
+.flow .fiche .ft i{font-size:13px;padding:6px 12px}
+.flow .state p{font-size:14px}
+.flow .state h4{font-size:18px}
+</style>
+
+<!-- 0 TITRE -->
+<section class="slide hero" data-sec="">
+  <div class="orb a"></div><div class="orb b"></div><div class="orb c"></div>
+  <div class="eyebrow">Agorastore · Plateforme frontend · Septembre 2026</div>
+  <h1>Les nouveautés<br>de la stack front.</h1>
+  <p class="sub">Query · Marketplace · Entity Details · Hors-ligne — <b>comment on s’en sert</b>.</p>
+  <div class="herostats">
+    <div class="hstat"><div class="v">01 <em>Query</em></div><div class="l">client typé · config · useQuery · mutations · prefetch</div></div>
+    <div class="hstat"><div class="v">02 <em>Market</em></div><div class="l">prefetch en prod · CatalogList · SEO &amp; images OG</div></div>
+    <div class="hstat"><div class="v">03 <em>Admin</em></div><div class="l">Entity Details : loader · config · sections · shell — sélecteurs distants · DataListRoot</div></div>
+    <div class="hstat"><div class="v">04 <em>Inventory</em></div><div class="l">hors-ligne : coquille · référentiel · brouillons</div></div>
+  </div>
+</section>
+
+<!-- DIVIDER 01 -->
+<section class="slide hero divider" data-sec="Query">
+  <div class="orb a"></div><div class="orb b"></div>
+  <div class="num">01</div>
+  <h1>Query</h1>
+  <p class="sub">Le client typé · l’utiliser · le configurer · le consommer · muter · précharger.</p>
+</section>
+
+<!-- 1.1 client généré -->
+<section class="slide" data-sec="Query">
+  <div class="kick"><span class="n">1.1</span>le client typé</div>
+  <h2>Rien ne change dans l’api-sdk. <em>Tout le client en sort.</em></h2>
+  <p class="focus">À gauche : ce qu’on écrivait déjà. À droite : ce que <code>createApiOperationClient</code> en génère, pour les 44 contrôleurs.</p>
+  <div class="row" style="align-items:center">
+    <div class="col" style="width:640px">
+      <div class="code" data-path="packages/api-sdk · contract/items.contract.ts — inchangé" data-lang="ts"><script type="text/x-code">export const getItemByIdSchema = makeEndpoint({
+  alias: 'getItemById',
+  method: 'get',
+  path: '/items/:itemShortId',
+  response: z.array(itemDto),
+})</script></div>
+      <div class="code" data-path="packages/api-sdk · controller/item.controller.ts — inchangé" data-lang="ts" data-hl="4,8"><script type="text/x-code">export const ItemController = createController((clientLoader) => {
+  const httpClient = clientLoader([...itemsApiSchema, ...searchApiSchema])
+  return {
+    queries: {
+      getFull(itemShortId: string) { /* … */ },
+      search(params: SearchParams) { /* … */ },
+    },
+    mutations: {
+      update({ itemShortId, item }: UpdateInput) { /* … */ },
+      deleteMany(input: DeleteManyInput) { /* … */ },
+    },
+  }
+})</script></div>
+    </div>
+    <svg width="90" height="60" viewBox="0 0 90 60" style="flex:none"><path d="M6 30h68" stroke="#1E56D6" stroke-width="3" fill="none"/><path d="M60 16l18 14-18 14" stroke="#1E56D6" stroke-width="3" fill="none"/></svg>
+    <div class="card grow" style="padding:22px 26px">
+      <div class="tree" style="font-size:15.5px">$client<br>
+├─ <span class="q">items</span><br>
+│&nbsp;&nbsp;├─ getFull&nbsp;&nbsp;&nbsp;&nbsp;<span class="g">query</span><br>
+│&nbsp;&nbsp;├─ search&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="g">query</span><br>
+│&nbsp;&nbsp;├─ update&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="m">mutation</span><br>
+│&nbsp;&nbsp;└─ deleteMany <span class="m">mutation</span><br>
+├─ <span class="q">organisations</span> <span class="g">get · search · getHierarchy · update …</span><br>
+├─ <span class="q">bidding</span> <span class="g">getProxyBids · queryBids …</span><br>
+├─ <span class="q">categories</span> · <span class="q">characteristics</span> · <span class="q">contracts</span> …<br>
+└─ <span class="g">44 contrôleurs · types inférés des DTO Zod</span></div>
+      <div class="facts" style="margin-top:18px"><span class="fact blue">query → .queryOptions() · .call() · .queryKey() · .key()</span><span class="fact am">mutation → .mutationOptions() · .call() · .mutationKey()</span><span class="fact">useNuxtApp().$client</span></div>
+      
+    </div>
+  </div>
+</section>
+
+<!-- 1.2 utiliser le client -->
+<section class="slide" data-sec="Query">
+  <div class="kick"><span class="n">1.2</span>utiliser le client</div>
+  <h2>Quatre méthodes par query, <em>une clé</em> derrière.</h2>
+  <p class="focus">La clé est toujours <code>['api', controller, operation, input]</code> : même input, même entrée de cache — quel que soit l’endroit du code.</p>
+  <div class="row" style="align-items:center">
+    <div class="card diagram" style="width:720px">
+      <svg viewBox="0 0 760 440" aria-label="Méthodes d’une opération">
+        <defs><marker id="c-ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0 0L10 5 0 10z" fill="#1E56D6"/></marker></defs>
+        <rect x="240" y="170" width="280" height="90" rx="14" fill="#16294F"/>
+        <text x="380" y="207" text-anchor="middle" fill="#fff" font-size="19" font-weight="700" class="mono">$client.items.getFull</text>
+        <text x="380" y="236" text-anchor="middle" fill="#FDBF62" font-size="13" class="mono">['api','items','getFull', input]</text>
+        <g stroke="#1E56D6" stroke-width="1.5" fill="none">
+          <path d="M300 170V100" marker-end="url(#c-ar)"/><path d="M460 170V100" marker-end="url(#c-ar)"/>
+          <path d="M300 260v70" marker-end="url(#c-ar)"/><path d="M460 260v70" marker-end="url(#c-ar)"/>
+        </g>
+        <g font-size="13.5">
+          <rect x="30" y="30" width="340" height="70" rx="12" fill="#EBF1FF" stroke="#C6D7FA"/>
+          <text x="48" y="58" font-weight="700" fill="#1E56D6" class="mono">.queryOptions({ input, select?, enabled? })</text>
+          <text x="48" y="84" fill="#55617A">→ useQuery · tables · formulaires · SSR · prefetch</text>
+          <rect x="390" y="30" width="340" height="70" rx="12" fill="#fff" stroke="#D5DBE7"/>
+          <text x="408" y="58" font-weight="700" fill="#0C1526" class="mono">.call(input)</text>
+          <text x="408" y="84" fill="#55617A">lecture impérative, hors cache, typée</text>
+          <rect x="30" y="330" width="340" height="70" rx="12" fill="#fff" stroke="#D5DBE7"/>
+          <text x="48" y="358" font-weight="700" fill="#0C1526" class="mono">.queryKey(input)</text>
+          <text x="48" y="384" fill="#55617A">la clé exacte d’une entrée — setQueryData ciblé</text>
+          <rect x="390" y="330" width="340" height="70" rx="12" fill="#fff" stroke="#D5DBE7"/>
+          <text x="408" y="358" font-weight="700" fill="#0C1526" class="mono">.key()</text>
+          <text x="408" y="384" fill="#55617A">le préfixe de l’opération — invalidation large</text>
+        </g>
+      </svg>
+    </div>
+    <div class="col grow">
+      <div data-hl="1" class="code" data-path="lecture" data-lang="ts"><script type="text/x-code">const options = $client.items.getFull.queryOptions({ input: 'I-7F3K2' })
+//  { queryKey: ['api','items','getFull','I-7F3K2'], queryFn, … }
+//  TData = ItemFullDto — inféré du contrat Zod
+
+// select : transformer sans changer la clé
+$client.organisations.search.queryOptions({
+  input: { q, from: 0, size: 25 },
+  select: ({ results, total }) => ({
+    options: results.map(toOption),
+    total,
+  }),
+})
+
+// impératif
+const item = await $client.items.getFull.call('I-7F3K2')</script></div>
+      <div class="code" data-path="écriture" data-lang="ts"><script type="text/x-code">$client.items.update.mutationOptions()        // → useMutation
+await $client.items.deleteMany.call({ itemShortIds })
+// les deux déclenchent l’invalidation automatique (→ 1.5)</script></div>
+    </div>
+  </div>
+</section>
+
+<!-- 1.3 config globale -->
+<section class="slide" data-sec="Query">
+  <div class="kick"><span class="n">1.3</span>configuration globale</div>
+  <h2><code>defineQueryConfig</code> — une fois par app, <em>pour toutes les queries</em>.</h2>
+  <p class="focus">Le moteur est commun ; chaque app décide fraîcheur, retry, invalidation, préchauffage et persistance. Les écrans n’en savent rien.</p>
+  <div class="row" style="align-items:center">
+    <div class="code sm" style="width:860px" data-path="apps/admin-front/app/config/query.ts" data-lang="ts" data-hl="2,6,17,25"><script type="text/x-code">export const queryConfig = defineQueryConfig(({ client }) => ({
+  mutationInvalidation: {
+    default: 'controller',
+    rules: { drafts: { update: false } },
+  },
+  queryClient: new QueryClient({
+    defaultOptions: {
+      queries: {
+        staleTime: 5_000,
+        gcTime: 10 * 60_000,
+        refetchOnWindowFocus: true,
+        retry: (count, error) => readAdminErrorStatus(error) >= 500 && count < 1,
+      },
+      mutations: { retry: false },
+    },
+  }),
+  warmup: {
+    queries: [
+      client.categories.list.queryOptions(),
+      client.canvases.list.queryOptions(),
+      client.characteristics.list.queryOptions(),
+    ],
+    staleTime: 30 * 60_000,
+  },
+  // persistence: { … }   ← inventory (→ 04)
+}))</script></div>
+    <div class="callouts grow">
+      <div class="callout"><div class="n">1</div><div><b>mutationInvalidation</b><span>après une mutation, quelles queries deviennent périmées — par défaut le contrôleur, avec exceptions.</span></div></div>
+      <div class="callout"><div class="n">2</div><div><b>queryClient · defaultOptions</b><span>le TanStack classique : <code>staleTime</code>, <code>gcTime</code>, focus, retry par type d’erreur.</span></div></div>
+      <div class="callout"><div class="n">3</div><div><b>warmup</b><span>queries lancées après la première page, en priorité basse — les référentiels sont chauds quand un formulaire s’ouvre.</span></div></div>
+      <div class="callout"><div class="n">4</div><div><b>persistence</b><span>brancher un persister (IndexedDB) et une liste blanche — le cache survit à la fermeture.</span></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- 1.3b quatre apps -->
+<section class="slide" data-sec="Query">
+  <div class="kick"><span class="n">1.3</span>configuration globale · les quatre apps</div>
+  <h2>Même contrat, <em>quatre politiques</em>.</h2>
+  <p class="focus">Ce que chaque <code>config/query.ts</code> a choisi, et pourquoi.</p>
+  <div class="cols4 eq">
+    <div class="card app"><div class="nm"><i></i>customer-front</div><div class="why">Transactionnel authentifié : rafraîchir vite, sans churn au focus.</div><div class="kv"><div><span>staleTime</span><span>15 s</span></div><div><span>gcTime</span><span>15 min</span></div><div><span>focus refetch</span><span>non</span></div><div><span>retry</span><span>1</span></div><div><span>invalidation</span><span>controller</span></div></div></div>
+    <div class="card app"><div class="nm"><i class="nv"></i>admin-front</div><div class="why">Poste de travail dense : revenir sur l’onglet montre l’état récent.</div><div class="kv"><div><span>staleTime</span><span>5 s</span></div><div><span>gcTime</span><span>10 min</span></div><div><span>focus refetch</span><span>oui</span></div><div><span>retry</span><span>≥ 500 · 1×</span></div><div><span>warmup</span><span>3 référentiels · 30 min</span></div></div></div>
+    <div class="card app"><div class="nm"><i class="am"></i>market-front</div><div class="why">Public, SSR : ne jamais rejouer une 404, ne pas refetch au remontage.</div><div class="kv"><div><span>staleTime</span><span>30 s</span></div><div><span>gcTime</span><span>∞ serveur · 30 min</span></div><div><span>retryOnMount</span><span>non</span></div><div><span>retry</span><span>408 · 429 · ≥ 500</span></div><div><span>prefetch</span><span>plans de route</span></div></div></div>
+    <div class="card app"><div class="nm"><i class="gr"></i>inventory-front</div><div class="why">PWA terrain : référentiel disponible 24 h sans réseau.</div><div class="kv"><div><span>staleTime</span><span>24 h</span></div><div><span>reconnexion</span><span>refetch</span></div><div><span>retry</span><span>1 · mutations 3</span></div><div><span>persistance</span><span>IndexedDB</span></div><div><span>scope</span><span>session × shop</span></div></div></div>
+  </div>
+</section>
+
+<!-- 1.4 useQuery -->
+<section class="slide" data-sec="Query">
+  <div class="kick"><span class="n">1.4</span>consommer · useQuery</div>
+  <h2>Notre <code>useQuery</code> : TanStack, <em>plus ce qui manquait</em>.</h2>
+  <p class="focus">Un getter d’options, un second argument, un retour étendu — la même signature dans les quatre apps.</p>
+  <div class="row" style="align-items:center">
+    <div class="code grow" data-path="anatomie · une fiche admin (composite de ModelDetails.vue et user.store.ts)" data-lang="ts" data-hl="2,4,8,13-17"><script type="text/x-code">const {
+  data: model,                    // Ref<Model | null> — jamais undefined
+  isLoading,
+  patchData, setData, clearData,  // écrire dans le cache
+  invalidate, reset, cancel,      // ciblés sur la clé courante
+  suspense,                       // attendre la 1ʳᵉ résolution
+} = useQuery(
+  () =>                           // ① getter : la clé suit les refs
+    $client.models.get.queryOptions({
+      enabled: Boolean(modelShortId.value),
+      input: modelShortId.value,
+    }),
+  {                               // ② nos options
+    defaultValue: null,
+    pageContext: (model) => ({ detailLabel: model.name }),
+    onData: (model) => (lastSeen.value = model.updatedAt),
+    onError: errorBoundary?.capture,
+  },
+)</script></div>
+    <div class="callouts" style="width:470px">
+      <div class="callout"><div class="n">①</div><div><b>getter</b><span><code>input</code> ou <code>enabled</code> changent → autre clé, autre requête. Pas de <code>watch</code>, pas de <code>refetch()</code>.</span></div></div>
+      <div class="callout"><div class="n">②</div><div><b>defaultValue · pageContext</b><span>type sans <code>undefined</code> ; l’entité alimente fil d’Ariane et titre.</span></div></div>
+      <div class="callout"><div class="n">②</div><div><b>onData · onError</b><span>déclenchés <b>une fois par mise à jour du cache</b> — pas à chaque render, pas au remontage sur données fraîches.</span></div></div>
+      <div class="callout"><div class="n">⇠</div><div><b>retour étendu</b><span><code>patchData</code>, <code>setData</code>, <code>suspense</code>… visent l’entrée exacte qu’on lit — la clé n’est jamais recalculée.</span></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- 1.4b usages -->
+<section class="slide" data-sec="Query">
+  <div class="kick"><span class="n">1.4</span>consommer · useQuery · en situation</div>
+  <h2>Six choses qu’on <em>n’écrit plus</em> à la main.</h2>
+  <p class="focus">Extraits réels des apps — un onglet par capacité. Chacun remplace un <code>watch</code>, un store ou un <code>refetch</code> d’autrefois.</p>
+  <div class="row" style="align-items:center">
+    <div class="callouts" style="width:430px;gap:8px">
+      <div class="callout"><div class="n">1</div><div><b>onData</b><span>dériver un état local, <b>une fois par donnée</b> — plus de <code>watch</code> à protéger.</span></div></div>
+      <div class="callout"><div class="n">2</div><div><b>onError</b><span>déconnecter, capturer dans l’error boundary.</span></div></div>
+      <div class="callout"><div class="n">3</div><div><b>pageContext</b><span>fil d’Ariane et titre dérivés de l’entité.</span></div></div>
+      <div class="callout"><div class="n">4</div><div><b>patchData</b><span>pousser le résultat d’une écriture — plus de <code>commit</code> + rechargement.</span></div></div>
+      <div class="callout"><div class="n">5</div><div><b>data en écriture</b><span>un live update écrit dans le cache — tous les observateurs suivent.</span></div></div>
+      <div class="callout"><div class="n">6</div><div><b>suspense()</b><span>attendre la 1ʳᵉ résolution — SSR, préchargement hors-ligne.</span></div></div>
+    </div>
+    <div class="code lg grow">
+<script type="text/x-code" data-path="onData" data-lang="ts" data-hl="9-13">// customer-front · stores/user.store.ts
+const {
+  data: user,
+  patchData: patchUser,
+  ...loggedUserQuery
+} = useQuery(
+  () => $client.auth.getLoggedUser.queryOptions({ enabled: Boolean(beaconToken.value) }),
+  {
+    defaultValue: null,
+    onData: (currentUser) => {
+      organisationShortId.value =
+        currentUser.impersonatedOrganisation?.organisationShortId
+        ?? currentUser.activeOrganisationShortId
+    },
+  },
+)</script><script type="text/x-code" data-path="onError" data-lang="ts" data-hl="5,11">// admin-front · stores/user.store.ts · ModelDetails.vue
+// session invalide → déconnexion locale
+useQuery(
+  () => $client.auth.getLoggedUser.queryOptions({ retry: false }),
+  { defaultValue: null, onError: () => signOut({ local: true }) },
+)
+
+// fiche introuvable → la boundary de la page prend le relais
+useQuery(
+  () => $client.models.get.queryOptions({ input: modelShortId }),
+  { onError: errorBoundary?.capture },
+)</script><script type="text/x-code" data-path="pageContext" data-lang="ts" data-hl="5-10">// admin-front · CategoryDetails.vue
+useQuery(
+  () => $client.categories.get.queryOptions({ input: categoryShortId }),
+  {
+    pageContext: (category) => ({
+      detailLabel:
+        getLocalizedValue(category.translations ?? [], 'name', 'fr')
+        ?? category.code
+        ?? category.categoryShortId,
+    }),
+  },
+)
+
+// <BaseBreadcrumbs> et <title> lisent $pageContext — rien à câbler dans la page</script><script type="text/x-code" data-path="patchData" data-lang="ts" data-hl="6,12">// customer-front · UserForm.vue · SellerKycWizard.vue
+const { data: user, patchData: patchUser } = useQuery(…)
+
+// après une action impérative
+const updated = await $client.users.update.call({ personShortId, user: formData })
+if (updated) patchUser(updated)          // fusionné dans l’entrée courante
+
+// ou porté par la mutation
+useMutation(() =>
+  $client.organisations.update.mutationOptions({
+    onSuccess: (organisation) => userStore.patchActiveOrganisation(organisation),
+  }),
+)</script><script type="text/x-code" data-path="data en écriture" data-lang="ts" data-hl="7">// market-front · composables/useItemLiveUpdates.ts
+const { data: item } = useQuery(() =>
+  $client.items.getFull.queryOptions({ input: itemShortId }),
+)
+
+pubnub.subscribe(`items.${itemShortId}.updates`, {
+  onMessage: ({ message }) => (item.value = mergeObjects(item.value, message)),
+})
+
+// écrire dans `item` écrit dans le cache :
+// prix, historique des enchères, meta SEO —
+// tous les observateurs de la clé se mettent à jour</script><script type="text/x-code" data-path="suspense()" data-lang="ts" data-hl="3,9-11">// market-front · ItemDetails.vue — inventory-front · useInventoryOfflineCatalog.ts
+// market, rendu serveur : la page attend la fiche avant de répondre
+await itemQuery.suspense().catch(() => undefined)
+if (!item.value) throw createMarketplaceError({ key: 'itemNotFound' })
+useMarketItemSeo(item)
+
+// inventory, au login : remplir le cache qui sera persisté hors-ligne
+await Promise.all([
+  canvases.suspense(),
+  categories.suspense(),
+  characteristics.suspense(),
+])</script>    </div>
+  </div>
+</section>
+
+<!-- 1.4c partout -->
+<section class="slide" data-sec="Query">
+  <div class="kick"><span class="n">1.4</span>consommer · tables, formulaires, catalogue</div>
+  <h2>Un <code>queryOptions</code>, <em>six consommateurs</em>.</h2>
+  <p class="focus">Partout où une donnée entre, c’est la même déclaration — donc la même clé, le même cache, la même invalidation.</p>
+  <div class="cols3 eq" style="grid-template-columns:1fr 1fr 1fr;grid-auto-rows:min-content">
+    <div class="code xs" data-path="composant · useQuery" data-lang="ts"><script type="text/x-code">useQuery(() =>
+  $client.items.getFull.queryOptions({ input: id }),
+)</script></div>
+    <div data-hl="3,4" class="code xs" data-path="DataList · defineTableSource" data-lang="ts"><script type="text/x-code">source: defineTableSource({
+  mode: 'remote',
+  query: ({ payload }) =>
+    $client.items.search.queryOptions({ input: payload }),
+})</script></div>
+    <div data-hl="3,4,11,12" class="code xs" data-path="FormRenderer · options distantes d’un champ" data-lang="ts"><script type="text/x-code">options: {
+  mode: 'remote',
+  source: ({ search, page }) =>
+    $client.organisations.search.queryOptions({
+      input: { q: search, from: …, size: page.size },
+      select: ({ results, total }) => ({
+        options: results.map(toOption),
+        hasMore: page.index * page.size < total,
+      }),
+    }),
+  resolveSelected: ({ value }) =>
+    $client.organisations.get.queryOptions({ input: [value] }),
+}</script></div>
+    <div data-hl="2-5" class="code xs" data-path="CatalogList · source + facets" data-lang="ts"><script type="text/x-code">source: {
+  query: ({ payload }) =>
+    $client.items.search.queryOptions({ input: payload }),
+  facets: ({ payload }) =>
+    $client.items.searchFilters.queryOptions({ input: payload }),
+}</script></div>
+    <div data-hl="1,2" class="code xs" data-path="Entity Details · defineEntityLoader" data-lang="ts"><script type="text/x-code">const organisation = essential.query(() =>
+  $client.organisations.get.queryOptions({ input: [id] }),
+)</script></div>
+    <div data-hl="2" class="code xs" data-path="page · defineQueryPrefetch" data-lang="ts"><script type="text/x-code">defineQueryPrefetch('item-itemShortId', ({ client, route }) =>
+  client.items.getFull.queryOptions({
+    input: route.params.itemShortId,
+  }),
+)</script></div>
+  </div>
+</section>
+
+<!-- 1.5 mutations -->
+<section class="slide" data-sec="Query">
+  <div class="kick"><span class="n">1.5</span>mutations</div>
+  <h2>Écrire, puis <em>laisser invalider</em>.</h2>
+  <p class="focus">Avant : le code appelant décide quoi recharger. Après : le contrôleur de la mutation devient périmé, selon la politique de l’app.</p>
+  <div class="cols2">
+    <div class="code v1" data-path="avant · store/organisation/index.js" data-lang="js" data-hl="9-11"><script type="text/x-code">async updateOrganisation({ commit, dispatch, state }, updated) {
+  await loadingState(dispatch, 'organisation', async () => {
+    const cleaned = hakunaTupu.removeEmpty({ ...updated, … });
+    const [impactedRows, results] =
+      await Api.organisations.update.apply(this, [cleaned]);
+    if (impactedRows === 0) return;
+    commit('updateOrganisation', results[0]);
+  });
+  // puis, à la charge de la page :
+  // recharger la liste ? le détail ? la hiérarchie ?
+  // la recherche globale ? les commentaires ?
+},</script></div>
+    <div class="col">
+      <div class="code" data-path="après · composable" data-lang="ts" data-hl="2,5"><script type="text/x-code">const { mutateAsync: save, isPending } = useMutation(() =>
+  $client.organisations.update.mutationOptions(),
+)
+await save({ organisationShortId, organisation: formData })
+// → ['api','organisations', …] périmé
+//   observées : refetch immédiat · autres : au prochain montage</script></div>
+      <div class="code" data-path="après · action impérative — même effet" data-lang="ts"><script type="text/x-code">await $client.items.deleteMany.call({ itemShortIds })</script></div>
+      <div class="code" data-path="la politique · apps/admin-front/app/config/query.ts" data-lang="ts"><script type="text/x-code">mutationInvalidation: {
+  default: 'controller',                 // le préfixe ['api','organisations']
+  rules: { drafts: { update: false } },  // exception : rien à invalider
+}</script></div>
+    </div>
+  </div>
+</section>
+
+<!-- 1.6 prefetch concept -->
+<section class="slide" data-sec="Query">
+  <div class="kick"><span class="n">1.6</span>prefetch intelligent</div>
+  <h2>La page déclare ses données. <em>Le lien les charge.</em></h2>
+  <p class="focus">Au survol d’un lien, Nuxt exécute le plan de la page destination dans le même cache que <code>useQuery</code> lira à l’arrivée.</p>
+  <div class="row" style="align-items:center">
+    <div class="card diagram" style="width:640px">
+      <svg viewBox="0 0 560 440" aria-label="Cycle du prefetch">
+        <defs><marker id="p-ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0 0L10 5 0 10z" fill="#1E56D6"/></marker></defs>
+        <rect x="20" y="20" width="520" height="62" rx="12" fill="#fff" stroke="#D5DBE7"/>
+        <text x="36" y="46" font-size="15" font-weight="700" fill="#0C1526">survol · focus · viewport d’un &lt;NuxtLink&gt;</text>
+        <text x="36" y="68" font-size="12.5" fill="#8A93A8" class="mono">hook link:prefetch</text>
+        <path d="M150 82v28" stroke="#1E56D6" stroke-width="1.5" marker-end="url(#p-ar)"/>
+        <path d="M410 82v28" stroke="#1E56D6" stroke-width="1.5" marker-end="url(#p-ar)"/>
+        <rect x="20" y="112" width="250" height="92" rx="12" fill="#EBF1FF" stroke="#C6D7FA"/>
+        <text x="36" y="140" font-size="15" font-weight="700" fill="#1E56D6">chunk de la route</text>
+        <text x="36" y="164" font-size="12.5" fill="#55617A">le JS de la destination</text>
+        <rect x="290" y="112" width="250" height="92" rx="12" fill="#EBF1FF" stroke="#C6D7FA"/>
+        <text x="306" y="140" font-size="15" font-weight="700" fill="#1E56D6">plan de données</text>
+        <text x="306" y="164" font-size="12.5" fill="#55617A">étapes en série</text>
+        <text x="306" y="184" font-size="12.5" fill="#55617A">queries en parallèle</text>
+        <path d="M150 204v28" stroke="#1E56D6" stroke-width="1.5" marker-end="url(#p-ar)"/>
+        <path d="M410 204v28" stroke="#1E56D6" stroke-width="1.5" marker-end="url(#p-ar)"/>
+        <rect x="20" y="234" width="520" height="62" rx="12" fill="#16294F"/>
+        <text x="280" y="260" text-anchor="middle" fill="#fff" font-size="14" class="mono">QueryClient · ['api','items','getFull', id]</text>
+        <text x="280" y="282" text-anchor="middle" fill="#B8C6E4" font-size="12" class="mono">ensureQueryData · revalidateIfStale</text>
+        <path d="M280 296v28" stroke="#1E56D6" stroke-width="1.5" marker-end="url(#p-ar)"/>
+        <rect x="20" y="326" width="520" height="62" rx="12" fill="#E7F7EE" stroke="#BFE8D2"/>
+        <text x="36" y="352" font-size="15" font-weight="700" fill="#189A54">clic → useQuery lit la même clé → hit</text>
+        <text x="36" y="376" font-size="12.5" fill="#55617A">survols répétés : une seule promesse · plan en échec : navigation intacte</text>
+        <text x="280" y="424" text-anchor="middle" font-size="13" fill="#D98F1F" font-weight="600">accueil → produit : 417 ms → 77 ms</text>
+      </svg>
+    </div>
+    <div data-hl="1,7,8" class="code lg grow" data-path="apps/market-front/app/pages/item/[itemShortId].vue" data-lang="ts"><script type="text/x-code">defineQueryPrefetch('item-itemShortId', ({ client, route }) => {
+  const itemQuery = client.items.getFull.queryOptions({
+    input: route.params.itemShortId,
+  })
+
+  return defineQueryPrefetchPlan()
+    .stage({ item: itemQuery })
+    .stage(({ item }) => ({            // `item` typé : ItemFullDto
+      characteristics: client.characteristics.list.queryOptions({
+        input: getItemCharacteristicIds(item),
+      }),
+    }))
+})
+
+// la destination consomme les mêmes options — donc la même clé
+const { data: item } = useQuery(() =>
+  $client.items.getFull.queryOptions({ input: props.itemShortId }),
+)</script></div>
+  </div>
+</section>
+
+<!-- 1.6b formes -->
+<section class="slide" data-sec="Query">
+  <div class="kick"><span class="n">1.6</span>prefetch intelligent · les formes</div>
+  <h2>Une option, une liste, <em>ou un plan</em>.</h2>
+  <p class="focus">Le nom de route type les <code>params</code> ; le contexte donne <code>client</code> et <code>route</code> (plus <code>prismic</code> sur market-front).</p>
+  <div class="cols3">
+    <div class="code sm" data-path="une option · pages/index.vue" data-lang="ts"><script type="text/x-code">defineQueryPrefetch('index', ({ prismic }) =>
+  prismic.singleQueryOptions('homepage'),
+)</script></div>
+    <div class="code sm" data-path="une liste, en parallèle · pages/seller/[sellerSlug].vue" data-lang="ts"><script type="text/x-code">defineQueryPrefetch('seller-sellerSlug', ({ client, route }) => [
+  client.organisations.getBySlug.queryOptions({
+    input: route.params.sellerSlug,
+  }),
+  prefetchCatalog({
+    route,
+    schema: itemCatalogSchema({ sellerSlug: route.params.sellerSlug }),
+  }),
+])</script></div>
+    <div data-hl="3,8" class="code sm" data-path="un plan, étapes dépendantes · pages/auction/[seanceShortId].vue" data-lang="ts"><script type="text/x-code">defineQueryPrefetch('auction-seanceShortId', ({ client, route }) => [
+  defineQueryPrefetchPlan()
+    .stage({
+      seance: client.seances.get.queryOptions({
+        input: [seanceShortId, ['appointments']],
+      }),
+    })
+    .stage(({ seance }) => ({
+      category: client.categories.get.queryOptions({
+        enabled: Boolean(seance.indexedMeta?.info?.categoryShortId),
+        input: [seance.indexedMeta?.info?.categoryShortId ?? ''],
+      }),
+    })),
+  prefetchCatalog({
+    route,
+    schema: seanceItemsCatalogSchema({ seanceShortId }),
+  }),
+])</script></div>
+  </div>
+  <div class="facts"><span class="fact blue">dédoublonné par fullPath</span><span class="fact blue">chunk et données en parallèle</span><span class="fact">un plan en échec n’empêche jamais la navigation</span></div>
+</section>
+
+<!-- DIVIDER 02 -->
+<section class="slide hero divider" data-sec="Marketplace">
+  <div class="orb a"></div><div class="orb b"></div>
+  <div class="num">02</div>
+  <h1>Marketplace</h1>
+  <p class="sub">Ce qui n’existe que sur market-front.</p>
+</section>
+
+<!-- prefetch mesuré -->
+<section class="slide" data-sec="Marketplace">
+  <div class="kick"><span class="n">2.1</span>prefetch · en production</div>
+  <h2>Chaque page déclare son plan. <em>Chaque lien le lance.</em></h2>
+  <p class="focus">Le résultat mesuré en production, et un plan de page réel : entité + catalogue préparés ensemble.</p>
+  <div class="row" style="align-items:center">
+    <div class="card diagram" style="width:720px">
+      <svg viewBox="0 0 640 400" aria-label="Navigation V1 vs V2">
+        <g font-size="14">
+          <text x="20" y="40" font-weight="700" fill="#0C1526" font-size="16">accueil → produit</text>
+          <rect x="20" y="56" width="530" height="30" rx="6" fill="#E4E8F0"/><rect x="20" y="56" width="530" height="30" rx="6" fill="#98A2B8"/><text x="32" y="77" fill="#fff" font-weight="700" class="mono">V1 · 417 ms</text>
+          <rect x="20" y="94" width="98" height="30" rx="6" fill="#1E56D6"/><text x="128" y="115" fill="#1E56D6" font-weight="700" class="mono">V2 · 77 ms · ×5,4</text>
+
+          <text x="20" y="190" font-weight="700" fill="#0C1526" font-size="16">produit → accueil</text>
+          <rect x="20" y="206" width="600" height="30" rx="6" fill="#98A2B8"/><text x="32" y="227" fill="#fff" font-weight="700" class="mono">V1 · 623 ms</text>
+          <rect x="20" y="244" width="133" height="30" rx="6" fill="#1E56D6"/><text x="163" y="265" fill="#1E56D6" font-weight="700" class="mono">V2 · 138 ms · ×4,5</text>
+
+          <text x="20" y="340" font-size="12.5" fill="#8A93A8">benchmark du 21/07/2026 · 5 cycles à chaud · survol 800 ms</text>
+          <text x="20" y="362" font-size="12.5" fill="#8A93A8">chrono arrêté quand le contenu de destination est visible</text>
+        </g>
+      </svg>
+    </div>
+    <div class="col grow">
+      <div class="code lg" data-path="apps/market-front/app/pages/seller/[sellerSlug].vue" data-lang="ts" data-hl="5-8"><script type="text/x-code">defineQueryPrefetch('seller-sellerSlug', ({ client, route }) => [
+  client.organisations.getBySlug.queryOptions({
+    input: route.params.sellerSlug,
+  }),
+  prefetchCatalog({
+    route,
+    schema: itemCatalogSchema({ sellerSlug: route.params.sellerSlug }),
+  }),
+])</script></div>
+      <div class="facts"><span class="fact blue">index · catalogue · catégorie · séance · vendeur · produit · Prismic</span><span class="fact am">toutes les pages ont un plan</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- CatalogList anatomie -->
+<section class="slide" data-sec="Marketplace">
+  <div class="kick"><span class="n">2.2</span>CatalogList</div>
+  <h2>Un DataList <em>pour la découverte</em> : la même famille, d’autres clés.</h2>
+  <p class="focus">Ce que chaque zone de la page catalogue doit à une clé de <code>defineCatalogSchema</code>. En bleu : ce qui n’existe pas côté DataList.</p>
+  <div class="row" style="align-items:center">
+    <div class="catmock" style="width:880px">
+      <div class="cm-top"><div class="mk" style="left:-14px;top:-14px">1</div><b>Catalogue</b><span>1 284 résultats</span><em>Trier : fin d’enchère ↑</em></div>
+      <div class="cm-body">
+        <div class="cm-facets"><div class="mk" style="left:-14px;top:-14px">2</div><h6>Catégorie</h6><div>Manutention <small>312</small></div><div>Machines-outils <small>208</small></div><div>Véhicules <small>144</small></div><h6>Prix</h6><div class="rng"></div><h6>Localisation</h6><div>France <small>1 102</small></div><div>Belgique <small>182</small></div></div>
+        <div class="cm-grid"><div class="mk" style="left:-14px;top:-14px">3</div>
+          <div class="cm-card"><i></i><b>Chariot élévateur Toyota</b><span>6 200 €</span></div><div class="cm-card"><i></i><b>Presse hydraulique 40 t</b><span>1 450 €</span></div><div class="cm-card"><i></i><b>Tour CNC Haas ST-10</b><span>18 900 €</span></div>
+          <div class="cm-card"><i></i><b>Compresseur Atlas Copco</b><span>2 300 €</span></div><div class="cm-card"><i></i><b>Nacelle Haulotte</b><span>7 800 €</span></div><div class="cm-card"><i></i><b>Pelle Kubota U27</b><span>15 200 €</span></div>
+        </div>
+      </div>
+      <div class="cm-pag"><div class="mk" style="left:-14px;top:-14px">4</div><span>‹</span><b>1</b><span>2</span><span>3</span><span>…</span><span>54</span><span>›</span><em>/catalogue/page2</em></div>
+      <div class="mk" style="right:14px;top:14px">5</div>
+    </div>
+    <div class="card api tight grow">
+      <div class="hd">clé du schéma → zone</div>
+      <div class="r"><div class="k"><span class="mk n1">1</span>#top · #toolbar</div><div class="d">slots : titre, total, tri, sauvegarder la recherche</div></div>
+      <div class="r"><div class="k"><span class="mk n1">2</span>filters + <b style="color:var(--blue)">source.facets</b></div><div class="d">les filtres, alimentés par les agrégats de la recherche</div></div>
+      <div class="r"><div class="k"><span class="mk n1">3</span><b style="color:var(--blue)">renderItem</b> · gridSize</div><div class="d"><code>({ row }) =&gt; &lt;ItemCard item={row} /&gt;</code> — une carte par ligne, pas de colonnes</div></div>
+      <div class="r"><div class="k"><span class="mk n1">4</span><b style="color:var(--blue)">pagination.route</b></div><div class="d">segment de chemin indexable, pas de query string</div></div>
+      <div class="r"><div class="k"><span class="mk n1">5</span><b style="color:var(--blue)">context</b> · runtimeContextType</div><div class="d">vendeur / catégorie résolus avant la requête · contexte d’écran typé</div></div>
+      <div class="r"><div class="k"><b style="color:var(--blue)">behavior</b>.onFilterChange</div><div class="d">renvoyer une route — changer de catégorie ramène au catalogue</div></div>
+      <div class="r"><div class="k">source.query · filters · sort · searchQuery · staticFilters · persistency</div><div class="d">identiques au DataList</div></div>
+    </div>
+  </div>
+</section>
+<style>
+.catmock{position:relative;border:1px solid var(--line-2);border-radius:14px;background:#fff;box-shadow:var(--sh);font-size:12.5px;color:var(--ink);overflow:visible}
+.catmock .mk,.api .mk{position:absolute;width:28px;height:28px;border-radius:50%;background:var(--amber);color:var(--navy);font-family:var(--disp);font-weight:700;font-size:14px;display:flex;align-items:center;justify-content:center;box-shadow:0 0 0 4px rgba(245,169,60,.28);z-index:3}
+.api .mk.n1{position:static;display:inline-flex;width:20px;height:20px;font-size:11px;box-shadow:none;margin-right:6px;vertical-align:middle}
+.cm-top{position:relative;display:flex;align-items:baseline;gap:14px;padding:16px 20px;border-bottom:1px solid var(--line)}
+.cm-top b{font-family:var(--disp);font-size:20px}.cm-top span{color:var(--faint)}.cm-top em{margin-left:auto;font-style:normal;font-size:12px;border:1px solid var(--line-2);border-radius:6px;padding:4px 10px;color:var(--sub)}
+.cm-body{display:grid;grid-template-columns:200px 1fr}
+.cm-facets{position:relative;padding:14px 16px;border-right:1px solid var(--line);display:flex;flex-direction:column;gap:5px}
+.cm-facets h6{font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--faint);margin:8px 0 3px;font-weight:600}
+.cm-facets div{display:flex;justify-content:space-between;color:var(--sub);font-size:12px}
+.cm-facets small{font-family:var(--mono);font-size:10px;color:var(--faint)}
+.cm-facets .rng{height:6px;border-radius:3px;background:linear-gradient(90deg,var(--line) 0 20%,var(--blue) 20% 70%,var(--line) 70%);margin:6px 0}
+.cm-grid{position:relative;display:grid;grid-template-columns:repeat(3,1fr);gap:12px;padding:14px 16px}
+.cm-card{border:1px solid var(--line);border-radius:10px;padding:10px;display:flex;flex-direction:column;gap:6px}
+.cm-card i{display:block;height:70px;border-radius:6px;background:#EEF0F5}
+.cm-card b{font-size:12px;font-weight:600}.cm-card span{font-family:var(--disp);font-weight:700;color:var(--blue)}
+.cm-pag{position:relative;display:flex;gap:8px;align-items:center;padding:12px 20px;border-top:1px solid var(--line);font-family:var(--mono);font-size:12px;color:var(--sub)}
+.cm-pag b{background:var(--navy);color:#fff;border-radius:6px;padding:2px 8px}.cm-pag em{margin-left:auto;font-style:normal;color:var(--amber-deep)}
+</style>
+
+<!-- un schéma trois usages -->
+<section class="slide" data-sec="Marketplace">
+  <div class="kick"><span class="n">2.3</span>CatalogList</div>
+  <h2>Un schéma, trois consommateurs.</h2>
+  <p class="focus">Le composant, le SSR et le prefetch lisent la même définition — un filtre change une fois.</p>
+  <div class="row" style="align-items:center">
+    <div class="card diagram" style="width:520px">
+      <svg viewBox="0 0 440 420" aria-label="Un schéma, trois usages">
+        <defs><marker id="k-ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0 0L10 5 0 10z" fill="#1E56D6"/></marker></defs>
+        <rect x="70" y="20" width="300" height="80" rx="14" fill="#16294F"/>
+        <text x="220" y="54" text-anchor="middle" fill="#fff" font-size="16" font-weight="700" class="mono">itemCatalogSchema()</text>
+        <text x="220" y="80" text-anchor="middle" fill="#B8C6E4" font-size="12">source · context · filtres · tri · rendu</text>
+        <g stroke="#1E56D6" stroke-width="1.5" fill="none">
+          <path d="M140 100C140 150 70 140 70 180" marker-end="url(#k-ar)"/>
+          <path d="M220 100v80" marker-end="url(#k-ar)"/>
+          <path d="M300 100C300 150 370 140 370 180" marker-end="url(#k-ar)"/>
+        </g>
+        <g font-size="13">
+          <rect x="10" y="186" width="130" height="150" rx="12" fill="#EBF1FF" stroke="#C6D7FA"/>
+          <text x="75" y="214" text-anchor="middle" font-weight="700" fill="#1E56D6">&lt;CatalogList&gt;</text>
+          <text x="75" y="240" text-anchor="middle" fill="#55617A">rendu client</text>
+          <text x="75" y="260" text-anchor="middle" fill="#55617A">filtres, tri,</text>
+          <text x="75" y="280" text-anchor="middle" fill="#55617A">pagination, URL</text>
+          <rect x="155" y="186" width="130" height="150" rx="12" fill="#EBF1FF" stroke="#C6D7FA"/>
+          <text x="220" y="214" text-anchor="middle" font-weight="700" fill="#1E56D6">SSR</text>
+          <text x="220" y="240" text-anchor="middle" fill="#55617A">suspense</text>
+          <text x="220" y="260" text-anchor="middle" fill="#55617A">même requête,</text>
+          <text x="220" y="280" text-anchor="middle" fill="#55617A">hydratée</text>
+          <rect x="300" y="186" width="130" height="150" rx="12" fill="#EBF1FF" stroke="#C6D7FA"/>
+          <text x="365" y="214" text-anchor="middle" font-weight="700" fill="#1E56D6">prefetchCatalog</text>
+          <text x="365" y="240" text-anchor="middle" fill="#55617A">context →</text>
+          <text x="365" y="260" text-anchor="middle" fill="#55617A">source + facets</text>
+          <text x="365" y="280" text-anchor="middle" fill="#55617A">depuis l’URL</text>
+        </g>
+        <text x="220" y="390" text-anchor="middle" font-size="13" fill="#D98F1F" font-weight="600">un filtre change dans le schéma → les trois changent</text>
+      </svg>
+    </div>
+    <div class="col grow">
+      <div class="code sm"><script type="text/x-code" data-path="pages/catalog/[[page]].vue" data-lang="vue" data-hl="2,15,16"><CatalogList
+  v-bind="itemCatalogSchema({ paginationRoute })"
+  :runtime-context="{ surface: 'catalogue' }"
+>
+  <template #top="{ total, isLoading }">
+    <h1>{{ $t('marketplace.labels.catalogue') }}</h1>
+  </template>
+  <template #toolbar="{ catalogApi }">
+    <CatalogSaveSearchButton :catalog-api="catalogApi" />
+  </template>
+  <template #empty>…</template>
+</CatalogList>
+
+// <script setup> — même page
+defineQueryPrefetch('catalog', ({ route }) =>
+  prefetchCatalog({ route, schema: itemCatalogSchema({ paginationRoute }) }),
+)</script><script type="text/x-code" data-path="entities/items/schema.tsx · extrait" data-lang="ts" data-hl="3-6,19">source: {
+  mode: 'remote',
+  query: ({ payload }) =>
+    $client.items.search.queryOptions({ input: payload }),
+  facets: ({ payload: { from, size, sort, ...input } }) =>
+    $client.items.searchFilters.queryOptions({ input }),
+},
+context: [
+  {
+    key: 'seller',
+    query: () =>
+      $client.organisations.getBySlug.queryOptions({ input: params.sellerSlug }),
+  },
+],
+filters: [
+  itemCatalogCategoryFilter({ key: 'categories' }),
+  itemCatalogPriceFilter({ key: 'price' }),
+],
+renderItem: ({ row }) => <ItemCard item={row} />,
+behavior: {
+  onFilterChange: ({ context, filterKey }) =>
+    context?.surface === 'category' && filterKey === 'categories'
+      ? { path: localePath({ name: 'catalog' }) }
+      : undefined,
+},</script></div>
+    </div>
+  </div>
+</section>
+
+<!-- SEO -->
+<section class="slide" data-sec="Marketplace">
+  <div class="kick"><span class="n">2.4</span>SEO</div>
+  <h2>Deux composables. <em>Tout dérive de l’entité.</em></h2>
+  <p class="focus"><code>useMarketPageSeo</code> pour une page, <code>useMarketItemSeo</code> pour une fiche : six sorties réactives.</p>
+  <div class="row" style="align-items:center">
+    <div class="col" style="width:640px">
+      <div class="code lg" data-path="une page · catalog/[[page]].vue" data-lang="ts"><script type="text/x-code">useMarketPageSeo({
+  title: () => $i18n.t('marketplace.labels.catalogue'),
+  description: seoDescription,
+})</script></div>
+      <div class="code lg" data-path="une fiche produit · ItemDetails.vue" data-lang="ts"><script type="text/x-code">useMarketItemSeo(item, { preview: props.preview })</script></div>
+      <div class="code sm" data-path="routes localisées · item/[itemShortId].vue" data-lang="ts"><script type="text/x-code">defineI18nRoute({
+  paths: {
+    fr: '/materiel-occasion/[itemSlug]/[itemShortId]',
+    en: '/used-equipment/[itemSlug]/[itemShortId]',
+    de: '/gebrauchte-ausrustung/[itemSlug]/[itemShortId]',
+    nl: '/tweedehands-materiaal/[itemSlug]/[itemShortId]',
+    pl: '/uzywany-sprzet/[itemSlug]/[itemShortId]',
+  },
+})</script></div>
+    </div>
+    <div class="card diagram grow">
+      <svg viewBox="0 0 700 420" aria-label="Sorties SEO">
+        <defs><marker id="s-ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0 0L10 5 0 10z" fill="#1E56D6"/></marker></defs>
+        <rect x="230" y="165" width="240" height="90" rx="14" fill="#16294F"/>
+        <text x="350" y="202" text-anchor="middle" fill="#fff" font-size="16" font-weight="700" class="disp">item + marché</text>
+        <text x="350" y="228" text-anchor="middle" fill="#B8C6E4" font-size="12" class="mono">locale · shop · marque · preview</text>
+        <g stroke="#1E56D6" stroke-width="1.5" fill="none">
+          <path d="M270 165C270 120 120 120 120 96" marker-end="url(#s-ar)"/>
+          <path d="M350 165V96" marker-end="url(#s-ar)"/>
+          <path d="M430 165C430 120 580 120 580 96" marker-end="url(#s-ar)"/>
+          <path d="M270 255C270 300 120 300 120 324" marker-end="url(#s-ar)"/>
+          <path d="M350 255v69" marker-end="url(#s-ar)"/>
+          <path d="M430 255C430 300 580 300 580 324" marker-end="url(#s-ar)"/>
+        </g>
+        <g font-size="13.5" fill="#0C1526">
+          <rect x="20" y="30" width="200" height="64" rx="12" fill="#fff" stroke="#D5DBE7"/><text x="120" y="56" text-anchor="middle" font-weight="700">title · description</text><text x="120" y="78" text-anchor="middle" fill="#8A93A8" font-size="11.5" class="mono">useSeoMeta</text>
+          <rect x="250" y="30" width="200" height="64" rx="12" fill="#fff" stroke="#D5DBE7"/><text x="350" y="56" text-anchor="middle" font-weight="700">canonical · hreflang</text><text x="350" y="78" text-anchor="middle" fill="#8A93A8" font-size="11.5">5 locales · URL par marque</text>
+          <rect x="480" y="30" width="200" height="64" rx="12" fill="#fff" stroke="#D5DBE7"/><text x="580" y="56" text-anchor="middle" font-weight="700">robots</text><text x="580" y="78" text-anchor="middle" fill="#8A93A8" font-size="11.5">noindex si non publié</text>
+          <rect x="20" y="326" width="200" height="64" rx="12" fill="#FFF3DE" stroke="#F7DDB0"/><text x="120" y="352" text-anchor="middle" font-weight="700" fill="#D98F1F">image OG 1200×630</text><text x="120" y="374" text-anchor="middle" fill="#D98F1F" font-size="11.5" class="mono">defineOgImage</text>
+          <rect x="250" y="326" width="200" height="64" rx="12" fill="#fff" stroke="#D5DBE7"/><text x="350" y="352" text-anchor="middle" font-weight="700">Schema.org</text><text x="350" y="374" text-anchor="middle" fill="#8A93A8" font-size="11.5">Product · Breadcrumb · WebPage</text>
+          <rect x="480" y="326" width="200" height="64" rx="12" fill="#fff" stroke="#D5DBE7"/><text x="580" y="352" text-anchor="middle" font-weight="700">OG · Twitter</text><text x="580" y="374" text-anchor="middle" fill="#8A93A8" font-size="11.5">unfurl Slack, LinkedIn…</text>
+        </g>
+      </svg>
+      <div class="cap">réactif : le prix change → l’offre Schema.org et la carte OG changent</div>
+    </div>
+  </div>
+</section>
+
+<!-- OG images -->
+<section class="slide" data-sec="Marketplace">
+  <div class="kick"><span class="n">2.5</span>images OG</div>
+  <h2>Une image de partage = <em>un composant Vue</em>.</h2>
+  <p class="focus"><code>defineOgImage</code> reçoit des props réactives ; le composant Takumi est rendu côté serveur en JPG.</p>
+  <div class="row" style="align-items:center">
+    <div class="col grow">
+      <div class="code"><script type="text/x-code" data-path="composables/useMarketItemSeo.ts" data-lang="ts" data-hl="1">defineOgImage('Product.takumi', {
+  themeKey: theme,                      // Agorastore | Auctelia
+  headline: itemName,
+  description: ogDescription,
+  category: categoryName,
+  image: () => itemImages.value[0],
+  price: formattedPrice,
+})</script><script type="text/x-code" data-path="components/OgImage/Product.takumi.vue" data-lang="vue"><script setup lang="ts">
+const props = defineProps<{
+  themeKey?: ThemeKey
+  headline?: string
+  description?: string
+  category?: string
+  image?: string
+  price?: string
+}>()
+
+const theme = computed(() => resolveMarketSeoTheme(props.themeKey).og)
+<\/script>
+
+<template>
+  <div
+    class="card"
+    :style="{ color: theme.colors.foreground, background: theme.colors.background }"
+  >
+    …
+  </div>
+</template></script></div>
+    </div>
+    <div class="col" style="width:640px">
+      <div class="ogmock">
+        <div class="og-brand">AGORASTORE</div>
+        <div class="og-cat">Manutention · Chariots élévateurs</div>
+        <div class="og-title">Chariot élévateur électrique Toyota 8FBE18, 2019</div>
+        <div class="og-bottom"><span class="og-price">6 200 €</span><span class="og-hint">enchère en cours</span></div>
+        <div class="og-img"></div>
+      </div>
+      <div class="facts"><span class="fact am">rendu serveur → JPG 1200×630</span><span class="fact">cache 7 jours</span><span class="fact">Market.takumi pour les pages, Product.takumi pour les fiches</span><span class="fact blue">nouveau type de page = un composant + un defineOgImage</span></div>
+    </div>
+  </div>
+</section>
+<style>
+.ogmock{position:relative;aspect-ratio:1200/630;border-radius:14px;background:linear-gradient(135deg,#182d5b,#2B4D93);color:#fff;padding:34px 38px;display:flex;flex-direction:column;gap:10px;overflow:hidden;box-shadow:var(--sh)}
+.ogmock::after{content:"";position:absolute;width:420px;height:420px;border-radius:50%;right:-160px;top:-200px;border:2px solid rgba(255,255,255,.12);background:rgba(253,191,98,.10)}
+.og-brand{font-family:var(--mono);font-size:12px;letter-spacing:.16em;color:var(--amber-light)}
+.og-cat{font-size:14px;color:#C6D2EC}
+.og-title{font-family:var(--disp);font-weight:700;font-size:34px;line-height:1.05;letter-spacing:-.02em;max-width:60%;margin-top:auto}
+.og-bottom{display:flex;align-items:baseline;gap:14px}
+.og-price{font-family:var(--disp);font-weight:700;font-size:30px;color:var(--amber-light)}
+.og-hint{font-size:13px;color:#C6D2EC}
+.og-img{position:absolute;right:38px;bottom:34px;width:200px;height:150px;border-radius:12px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2)}
+</style>
+
+<!-- DIVIDER 03 -->
+<section class="slide hero divider" data-sec="Admin">
+  <div class="orb a"></div><div class="orb b"></div>
+  <div class="num">03</div>
+  <h1>Entity Details</h1>
+  <p class="sub">La fiche entité : ce que c’est, comment elle s’orchestre, comment on en écrit une. Puis deux briques de plus : sélecteurs distants, table en pièces détachées.</p>
+</section>
+
+<!-- 3.1 QU'EST-CE QUE C'EST -->
+<section class="slide" data-sec="Admin">
+  <div class="kick"><span class="n">3.1</span>qu’est-ce que c’est</div>
+  <h2>Une fiche = un en-tête, des sections, un rail.</h2>
+  <p class="focus">Organisation, item, séance, contrat, facture, utilisateur : la même structure, opérée par un composant partagé — <code>&lt;EntityDetailShell&gt;</code>.</p>
+  <div class="fiche lg" style="height:575px">
+    <div class="mk" style="left:-14px;top:-14px">1</div>
+    <div class="fh"><div><div class="t">Ateliers Roux</div><div class="meta"><span class="st">ACTIVE</span><span>ORG-4821</span><span>Vendeur · Acheteur</span><span>contact@ateliers-roux.fr</span></div></div><div class="act"><i>Rafraîchir</i><i>Actions ▾</i></div></div>
+    <div class="fb">
+      <div class="doc">
+        <div class="grp">édition</div>
+        <div class="sec"><div class="mk" style="left:-14px;top:-14px">2</div><div class="sh"><b>Identité</b></div><div class="fields f4"><div class="fld"><label>Nom</label><span>Ateliers Roux</span></div><div class="fld"><label>TVA</label><span>FR 42 812 345 678</span></div><div class="fld"><label>Type</label><span>SAS</span></div><div class="fld"><label>Email</label><span>contact@ateliers-roux.fr</span></div></div></div>
+        <div class="sec dirty"><div class="mk" style="left:-14px;top:-14px">3</div><div class="sh"><b>Contacts</b><em>Modifications non enregistrées</em></div><div class="fields f4"><div class="fld"><label>Téléphone</label><span class="ch">+33 4 72 00 00 01</span></div><div class="fld"><label>Site</label><span>ateliers-roux.fr</span></div><div class="fld"><label>Contact</label><span>M. Roux</span></div><div class="fld"><label>Langue</label><span>fr</span></div></div><div class="ft"><i>Annuler</i><i class="p">Enregistrer</i></div></div>
+        <div class="grp">données</div>
+        <div class="sec"><div class="mk" style="left:-14px;top:-14px">4</div><div class="sh"><b>Utilisateurs <small>8</small></b><em style="color:var(--blue)">Vue complète →</em></div><div class="tb"><div><span>Nom</span><span>Email</span><span>Rôle</span></div><div><span>M. Roux</span><span>m.roux@ateliers-roux.fr</span><i class="ok">ADMIN</i></div></div></div>
+        <div class="sec def"><div class="mk" style="left:-14px;top:-14px">5</div><div class="sh"><b>Items <small>37</small></b><em style="color:var(--faint)">différée · chargée à l’approche</em></div><div class="skel" style="width:70%"></div><div class="skel" style="width:55%"></div></div>
+      </div>
+      <div class="rail">
+        <div class="mk" style="right:10px;top:10px">6</div>
+        <h6>Édition</h6><div>Identité</div><div class="cur">Contacts <span class="dot"></span></div><div>Rôles &amp; hiérarchie</div>
+        <h6>Données</h6><div>Utilisateurs <small>8</small></div><div>Contrats <small>5</small></div><div>Items <small>37</small></div><div>Enchères <small>112</small></div>
+        <h6>Suivi</h6><div>Commentaires <small>14</small></div><div>Audit <small class="ld"></small></div>
+      </div>
+    </div>
+  </div>
+  <div class="legend">
+    <div><span class="mk">1</span><div><b>En-tête</b>identité · meta · stats · notices · menu d’actions</div></div>
+    <div><span class="mk">2</span><div><b>Section formulaire</b>un schéma FormRenderer, lié à l’entité</div></div>
+    <div><span class="mk">3</span><div><b>État modifié</b>bordure, libellé, pied Annuler / Enregistrer — par section</div></div>
+    <div><span class="mk">4</span><div><b>Table liée</b>un DataList embarqué, compteur, vue complète</div></div>
+    <div><span class="mk">5</span><div><b>Chargement différé</b>rien ne part avant que la section approche</div></div>
+    <div><span class="mk">6</span><div><b>Rail</b>scrollspy · compteurs · point « modifié »</div></div>
+  </div>
+</section>
+
+<!-- 3.2 VOUS / SHELL -->
+<section class="slide" data-sec="Admin">
+  <div class="kick"><span class="n">3.2</span>répartition des rôles</div>
+  <h2>Vous déclarez trois choses. <em>Le shell fait le reste.</em></h2>
+  <p class="focus">Le code métier dit quoi charger, comment la fiche est structurée, et ce qu’un enregistrement fait. Tout le cycle de vie est partagé.</p>
+  <div class="card diagram grow">
+    <svg viewBox="0 0 1400 520" aria-label="Vous déclarez, le shell opère">
+      <defs><marker id="e-ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0 0L10 5 0 10z" fill="#1E56D6"/></marker></defs>
+      <g font-size="14">
+        <text x="20" y="34" font-size="12" class="mono" fill="#1E56D6" font-weight="700" letter-spacing="2">VOUS ÉCRIVEZ</text>
+        <rect x="20" y="50" width="420" height="130" rx="14" fill="#EBF1FF" stroke="#C6D7FA"/>
+        <text x="40" y="82" font-weight="700" fill="#1E56D6" class="mono" font-size="17">defineEntityLoader</text>
+        <text x="40" y="108" fill="#0C1526" font-weight="600">quoi charger, à quel moment</text>
+        <text x="40" y="134" fill="#55617A" class="mono" font-size="12.5">essential.query · background.count · deferred.table</text>
+        <text x="40" y="162" fill="#8A93A8" font-size="12" class="mono">entities/organisations/detail/composables/useOrganisationDetail.ts</text>
+        <rect x="20" y="196" width="420" height="130" rx="14" fill="#EBF1FF" stroke="#C6D7FA"/>
+        <text x="40" y="228" font-weight="700" fill="#1E56D6" class="mono" font-size="17">defineEntityDetails</text>
+        <text x="40" y="254" fill="#0C1526" font-weight="600">la structure : groupes → sections</text>
+        <text x="40" y="280" fill="#55617A" class="mono" font-size="12.5">form · table · editor · slot · stats · notices</text>
+        <text x="40" y="308" fill="#8A93A8" font-size="12" class="mono">components/entities/organisations/detail/OrganisationDetails.vue</text>
+        <rect x="20" y="342" width="420" height="130" rx="14" fill="#FFF3DE" stroke="#F7DDB0"/>
+        <text x="40" y="374" font-weight="700" fill="#D98F1F" class="mono" font-size="17">submit(formData) → boolean</text>
+        <text x="40" y="400" fill="#0C1526" font-weight="600">ce qu’un enregistrement fait</text>
+        <text x="40" y="426" fill="#55617A" class="mono" font-size="12.5">mutation · erreurs métier · transaction</text>
+        <text x="40" y="454" fill="#8A93A8" font-size="12" class="mono">dans le loader</text>
+        <path d="M440 115h60" stroke="#1E56D6" stroke-width="1.5" marker-end="url(#e-ar)"/>
+        <path d="M440 261h60" stroke="#1E56D6" stroke-width="1.5" marker-end="url(#e-ar)"/>
+        <path d="M440 407h60" stroke="#1E56D6" stroke-width="1.5" marker-end="url(#e-ar)"/>
+        <text x="510" y="34" font-size="12" class="mono" fill="#D98F1F" font-weight="700" letter-spacing="2">LE SHELL OPÈRE</text>
+        <rect x="510" y="50" width="870" height="422" rx="18" fill="#16294F"/>
+        <g font-size="13.5" fill="#D6E1F5">
+          <rect x="534" y="74" width="266" height="88" rx="10" fill="rgba(255,255,255,.07)" stroke="rgba(255,255,255,.14)"/><text x="550" y="104" font-weight="700" fill="#FDBF62" font-size="15">rendu</text><text x="550" y="128">en-tête · sections · rail · états</text><text x="550" y="148" fill="#8FA3CC" font-size="12">skeleton · erreur · vide</text>
+          <rect x="812" y="74" width="266" height="88" rx="10" fill="rgba(255,255,255,.07)" stroke="rgba(255,255,255,.14)"/><text x="828" y="104" font-weight="700" fill="#FDBF62" font-size="15">chargement</text><text x="828" y="128">essential → background → deferred</text><text x="828" y="148" fill="#8FA3CC" font-size="12">viewport 320 px · clic rail · refresh</text>
+          <rect x="1090" y="74" width="266" height="88" rx="10" fill="rgba(255,255,255,.07)" stroke="rgba(255,255,255,.14)"/><text x="1106" y="104" font-weight="700" fill="#FDBF62" font-size="15">navigation</text><text x="1106" y="128">rail · scrollspy · compteurs</text><text x="1106" y="148" fill="#8FA3CC" font-size="12">points « modifié » · alertes</text>
+          <rect x="534" y="180" width="266" height="88" rx="10" fill="rgba(255,255,255,.07)" stroke="rgba(255,255,255,.14)"/><text x="550" y="210" font-weight="700" fill="#FDBF62" font-size="15">liaison</text><text x="550" y="234">entité → input du formulaire</text><text x="550" y="254" fill="#8FA3CC" font-size="12">baseline = valeur serveur</text>
+          <rect x="812" y="180" width="266" height="88" rx="10" fill="rgba(255,255,255,.07)" stroke="rgba(255,255,255,.14)"/><text x="828" y="210" font-weight="700" fill="#FDBF62" font-size="15">état modifié</text><text x="828" y="234">détection · bordure · libellé</text><text x="828" y="254" fill="#8FA3CC" font-size="12">pied Annuler / Enregistrer</text>
+          <rect x="1090" y="180" width="266" height="88" rx="10" fill="rgba(255,255,255,.07)" stroke="rgba(255,255,255,.14)"/><text x="1106" y="210" font-weight="700" fill="#FDBF62" font-size="15">commit</text><text x="1106" y="234">submit → invalidation → refetch</text><text x="1106" y="254" fill="#8FA3CC" font-size="12">puis reset de la baseline</text>
+          <rect x="534" y="286" width="266" height="88" rx="10" fill="rgba(255,255,255,.07)" stroke="rgba(255,255,255,.14)"/><text x="550" y="316" font-weight="700" fill="#FDBF62" font-size="15">verrou</text><text x="550" y="340">une section enregistre à la fois</text><text x="550" y="360" fill="#8FA3CC" font-size="12">les autres pieds désactivés</text>
+          <rect x="812" y="286" width="266" height="88" rx="10" fill="rgba(255,255,255,.07)" stroke="rgba(255,255,255,.14)"/><text x="828" y="316" font-weight="700" fill="#FDBF62" font-size="15">garde de sortie</text><text x="828" y="340">confirmation si modifications</text><text x="828" y="360" fill="#8FA3CC" font-size="12">un brouillon n’est jamais écrasé</text>
+          <rect x="1090" y="286" width="266" height="88" rx="10" fill="rgba(255,255,255,.07)" stroke="rgba(255,255,255,.14)"/><text x="1106" y="316" font-weight="700" fill="#FDBF62" font-size="15">tables liées</text><text x="1106" y="340">DataList embarqué · compteur</text><text x="1106" y="360" fill="#8FA3CC" font-size="12">vue complète · scroll maîtrisé</text>
+          <rect x="534" y="392" width="822" height="56" rx="10" fill="rgba(253,191,98,.12)" stroke="rgba(253,191,98,.4)"/><text x="945" y="426" text-anchor="middle" fill="#FDBF62" font-size="14" font-weight="600">packages/shared-ui/lib/entity-details — un seul composant pour les six entités, testé une fois</text>
+        </g>
+      </g>
+    </svg>
+  </div>
+</section>
+
+<!-- 3.3 CHRONOLOGIE -->
+<section class="slide" data-sec="Admin">
+  <div class="kick"><span class="n">3.3</span>orchestration du chargement</div>
+  <h2>L’essentiel d’abord, le reste ensuite, <em>les tables à la demande</em>.</h2>
+  <p class="focus">Chronologie d’une fiche organisation : ce qui part à l’ouverture, ce qui attend <code>ready</code>, ce qui attend la section.</p>
+  <div class="card diagram grow">
+    <svg viewBox="0 0 1400 500" aria-label="Chronologie de chargement">
+      <g font-size="14" fill="#55617A">
+        <line x1="260" y1="40" x2="260" y2="460" stroke="#E4E8F0"/>
+        <line x1="560" y1="40" x2="560" y2="460" stroke="#C6D7FA" stroke-width="2"/>
+        <line x1="880" y1="40" x2="880" y2="460" stroke="#E4E8F0"/>
+        <line x1="1120" y1="40" x2="1120" y2="460" stroke="#E4E8F0"/>
+        <text x="260" y="28" text-anchor="middle" font-size="13" class="mono" fill="#8A93A8">t0 · montage</text>
+        <text x="560" y="28" text-anchor="middle" font-size="13" class="mono" fill="#1E56D6" font-weight="700">ready</text>
+        <text x="880" y="28" text-anchor="middle" font-size="13" class="mono" fill="#8A93A8">rail complet</text>
+        <text x="1120" y="28" text-anchor="middle" font-size="13" class="mono" fill="#8A93A8">scroll · clic rail</text>
+        <text x="30" y="72" font-weight="700" fill="#0C1526" font-size="16">essential</text><text x="30" y="94" font-size="13" fill="#8A93A8">bloque le rendu</text>
+        <rect x="260" y="58" width="240" height="16" rx="4" fill="#1E56D6"/><text x="510" y="71" font-size="12.5" class="mono">organisations.get</text>
+        <rect x="260" y="82" width="180" height="16" rx="4" fill="#1E56D6"/><text x="450" y="95" font-size="12.5" class="mono">shops.list</text>
+        <rect x="260" y="106" width="300" height="16" rx="4" fill="#1E56D6"/><text x="570" y="119" font-size="12.5" class="mono">organisations.getHierarchy</text>
+        <rect x="560" y="146" width="300" height="34" rx="8" fill="#EBF1FF" stroke="#C6D7FA"/><text x="710" y="169" text-anchor="middle" font-size="13.5" fill="#1E56D6" font-weight="700">en-tête et formulaires rendus</text>
+        <text x="30" y="226" font-weight="700" fill="#0C1526" font-size="16">background</text><text x="30" y="248" font-size="13" fill="#8A93A8">démarre à ready · ne bloque pas</text>
+        <rect x="560" y="212" width="150" height="16" rx="4" fill="#6F8FE0"/><text x="720" y="225" font-size="12.5" class="mono">count items · size 1</text>
+        <rect x="560" y="236" width="210" height="16" rx="4" fill="#6F8FE0"/><text x="780" y="249" font-size="12.5" class="mono">count bids · users · contracts…</text>
+        <rect x="560" y="260" width="110" height="16" rx="4" fill="#6F8FE0"/><text x="680" y="273" font-size="12.5" class="mono">logo signed URL</text>
+        <rect x="880" y="292" width="220" height="34" rx="8" fill="#F5F6FA" stroke="#E4E8F0"/><text x="990" y="315" text-anchor="middle" font-size="13.5" fill="#55617A" font-weight="600">pastilles du rail : 37 · 112 · 8</text>
+        <text x="30" y="378" font-weight="700" fill="#0C1526" font-size="16">deferred</text><text x="30" y="400" font-size="13" fill="#8A93A8">attend la section</text>
+        <rect x="1120" y="364" width="180" height="16" rx="4" fill="#B9C6F2"/><text x="1310" y="377" font-size="12.5" class="mono">items</text>
+        <rect x="1170" y="388" width="130" height="16" rx="4" fill="#B9C6F2"/><text x="1310" y="401" font-size="12.5" class="mono">contracts</text>
+        <rect x="1220" y="412" width="80" height="16" rx="4" fill="#B9C6F2"/><text x="1310" y="425" font-size="12.5" class="mono">users</text>
+        <text x="1120" y="452" font-size="12.5" fill="#8A93A8">à moins de 320 px du viewport, ou ciblée depuis le rail</text>
+      </g>
+    </svg>
+    <div class="cap">un compteur = une requête <code>size: 1</code>, indépendante de la table · rechercher dans la table ne change pas la pastille</div>
+  </div>
+</section>
+
+<!-- 3.4 LOADER -->
+<section class="slide" data-sec="Admin">
+  <div class="kick"><span class="n">3.4</span>partie 1 · le loader</div>
+  <h2><code>defineEntityLoader</code> — chaque ressource nourrit une partie de la fiche.</h2>
+  <p class="focus">Un composable par entité. Trois étages, quatre méthodes. À droite : où chaque déclaration atterrit.</p>
+  <div class="row" style="align-items:center">
+    <div data-hl="5,11,16,20" class="code sm" style="width:900px" data-path="entities/organisations/detail/composables/useOrganisationDetail.ts (simplifié)" data-lang="ts"><script type="text/x-code">export function useOrganisationDetail(params: { organisationShortId: string }) {
+  return defineEntityLoader(({ essential, background, deferred }) => {
+
+    // ① en-tête + formulaires
+    const organisation = essential.query(
+      () => $client.organisations.get.queryOptions({ input: [params.organisationShortId] }),
+      { pageContext: (o) => ({ detailLabel: o.name }) },
+    )
+
+    // ② image d’en-tête
+    const logoUrl = background.query(() =>
+      $client.resources.getOrganisationLogoSignedUrl.queryOptions({ /* … */ }),
+    )
+
+    // ④ la table, quand on y arrive  ·  ③ la pastille, tout de suite
+    const items = deferred.table(
+      () => itemsTableSchema({ organisationShortId: params.organisationShortId }),
+      {
+        count: background.count(() =>
+          $client.items.search.queryOptions({
+            input: {
+              from: 0,
+              size: 1,
+              terms_filters: { sellers: [params.organisationShortId] },
+            },
+            select: ({ total }) => total,
+          }),
+        ),
+      },
+    )
+
+    async function updateOrganisation({ formData }) { /* → 3.6 */ }
+
+    return { organisation, logoUrl, items, updateOrganisation }
+  })
+}</script></div>
+    <div class="fiche grow" style="height:560px">
+      <div class="fh"><div><div class="t">Ateliers Roux <span class="stage-tag es">essential</span></div><div class="meta"><span class="st">ACTIVE</span><span>ORG-4821</span></div></div><div class="act"><i style="border-color:#DCE4FB;background:#DCE4FB;color:#1E3A73">logo <span class="stage-tag bg">background</span></i></div></div>
+      <div class="fb">
+        <div class="doc">
+          <div class="sec"><div class="sh"><b>Identité <span class="stage-tag es">essential</span></b></div><div class="fields"><div class="fld"><label>Nom</label><span>Ateliers Roux</span></div><div class="fld"><label>Boutique</label><span>Agorastore <span class="stage-tag es">shops</span></span></div></div></div>
+          <div class="sec def"><div class="sh"><b>Items <small>37</small> <span class="stage-tag df">deferred.table</span></b></div><div class="skel" style="width:70%"></div><div class="skel" style="width:50%"></div></div>
+          <div class="sec def"><div class="sh"><b>Contrats <small>5</small> <span class="stage-tag df">deferred.table</span></b></div><div class="skel" style="width:60%"></div></div>
+        </div>
+        <div class="rail">
+          <h6>Données</h6><div>Items <small>37</small></div><div>Contrats <small>5</small></div><div>Utilisateurs <small>8</small></div>
+          <div style="margin-top:8px;padding:6px 8px;border-radius:6px;background:#DCE4FB;color:#1E3A73;font-size:11px;line-height:1.35;display:block">③ pastilles = <span class="stage-tag bg">background.count</span><br>indépendantes des tables</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 3.5 ÉTAGES -->
+<section class="slide" data-sec="Admin">
+  <div class="kick"><span class="n">3.4</span>partie 1 · le loader · les étages</div>
+  <h2>Trois étages, un compteur.</h2>
+  <p class="focus">Quand chaque étage part, ce qu’il bloque, et la déclaration qui va avec.</p>
+  <div class="cols4 eq">
+    <div class="card step"><div class="n">essential</div><h4>Sans quoi la fiche n’a pas de sens</h4><p>L’entité, et ce que les formulaires doivent connaître.</p><p><b>Charge</b> → skeleton. <b>Erreur</b> → la fiche l’affiche.</p><div class="code sm"><script type="text/x-code">essential.query(() =>
+  $client.organisations.get
+    .queryOptions({ input: [id] }))</script></div></div>
+    <div class="card step"><div class="n">background</div><h4>Utile tout de suite, jamais bloquant</h4><p>Compteurs, URL signées, données secondaires.</p><p>Démarre au <code>ready</code>. Un échec ici n’empêche rien.</p><div class="code sm"><script type="text/x-code">background.query(() =>
+  $client.resources
+    .getOrganisationLogoSignedUrl
+    .queryOptions({ /* … */ }))</script></div></div>
+    <div class="card step"><div class="n">deferred</div><h4>Cher, donc à la demande</h4><p>Les tables de relations.</p><p>Aucune requête avant que la section soit proche du viewport ou ciblée depuis le rail.</p><div class="code sm"><script type="text/x-code">deferred.table(() =>
+  contractsTableSchema({
+    organisationShortId }))</script></div></div>
+    <div class="card step"><div class="n am">count</div><h4>Le plus petit fait utile</h4><p><code>size: 1</code>, <code>select: total</code>.</p><p>Attaché à une table → pastille et titre de section, sans dépendre d’elle.</p><div class="code sm"><script type="text/x-code">background.count(() =>
+  $client.items.search.queryOptions({
+    input: { from: 0, size: 1, … },
+    select: ({ total }) => total }))</script></div></div>
+  </div>
+  <div class="facts"><span class="fact blue">.query · .count · .table · .resource sur chaque étage</span><span class="fact">retour : ready · error · refreshing · refresh({ resources? })</span></div>
+</section>
+
+<!-- 3.6 CONFIG -->
+<section class="slide" data-sec="Admin">
+  <div class="kick"><span class="n">3.5</span>partie 2 · la configuration</div>
+  <h2><code>defineEntityDetails</code> — des groupes, des sections, <em>quatre types</em>.</h2>
+  <p class="focus">La config se lit comme le plan de la fiche. Chaque section a un type ; le shell sait rendre chacun.</p>
+  <div class="row" style="align-items:center">
+    <div data-hl="8,14,24,29,33" class="code sm" style="width:820px" data-path="components/entities/organisations/detail/OrganisationDetails.vue (abrégé)" data-lang="ts"><script type="text/x-code">const details = defineEntityDetails({
+  entity: () => organisation.value,      // nullish → shell en chargement
+  loader: () => organisationDetails,     // ready · refresh · error
+  groups: [
+    {
+      key: 'edition',
+      sections: [
+        defineEntityDetailFormSection({
+          key: 'identity',
+          label: () => $i18n.t('…sections.identity.title'),
+          schema: () => organisationIdentityFormSchema({ organisation }),
+          submit: organisationDetails.updateOrganisation,
+        }),
+        defineEntityDetailFormSection({
+          key: 'contacts',
+          schema: organisationContactsFormSchema,
+          submit: organisationDetails.updateOrganisation,
+        }),
+      ],
+    },
+    {
+      key: 'data',
+      sections: [
+        defineEntityDetailTableSection({
+          key: 'items',
+          resource: () => organisationDetails.items,
+          fullViewTo: () => ({ name: 'items', query: { … } }),
+        }),
+        defineEntityDetailEditorSection({
+          key: 'resources',
+          label: () => $i18n.t('…sections.resources.title'),
+        }),
+        {                                    // slot
+          key: 'documents',
+          label: () => $i18n.t('…sections.documents.title'),
+          resource: () => organisationDetails.documents,
+        },
+      ],
+    },
+    { key: 'tracking', sections: [ /* comments · questions · audit */ ] },
+  ],
+})</script></div>
+    <div class="types grow" style="grid-template-columns:1fr 1fr">
+      <div class="type"><div class="ill"><b>Identité</b><div class="row2"><div class="ln"></div><div class="ln"></div></div><div class="row2"><div class="ln"></div><div class="ln"></div></div><div class="btns"><i>Annuler</i><i class="p">Enregistrer</i></div></div><h4><code>form</code></h4><p>schéma + <code>submit</code> → formulaire, état modifié, commit</p></div>
+      <div class="type"><div class="ill"><b>Items <small style="color:var(--faint)">· 37</small></b><div class="tr"><span>RA-20481</span><span>Chariot élévateur</span><span>OPEN</span></div><div class="tr"><span>RA-20488</span><span>Presse hydraulique</span><span>PAID</span></div><div class="tr"><span>RA-20495</span><span>Tour CNC</span><span>CLOSED</span></div><div style="margin-top:auto;color:var(--blue);font-size:11px;text-align:right">Vue complète →</div></div><h4><code>table</code></h4><p>ressource du loader → DataList embarqué, compteur, vue complète</p></div>
+      <div class="type"><div class="ill"><b>Photos</b><div class="thumbs"><i></i><i></i><i></i></div><div class="btns"><i>Annuler</i><i class="p">Enregistrer</i></div></div><h4><code>editor</code></h4><p>éditeur maison — même pied, mêmes verrous</p></div>
+      <div class="type"><div class="ill"><b>Documents</b><div class="custom">&lt;template #documents&gt;</div></div><h4><code>slot</code></h4><p>vous rendez le contenu ; le shell gère rail et activation</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- 3.7 TEMPLATE -->
+<section class="slide" data-sec="Admin">
+  <div class="kick"><span class="n">3.5</span>partie 2 · le template</div>
+  <h2>Le shell, plus un slot par section <em>sur mesure</em>.</h2>
+  <p class="focus">Le template ne contient que l’identité de l’en-tête et les sections qu’aucun type générique ne couvre.</p>
+  <div class="row" style="align-items:center">
+    <div class="code" style="width:900px" data-path="OrganisationDetails.vue · template" data-lang="vue" data-hl="1,9"><script type="text/x-code"><EntityDetailShell :details="details" :actions="headerActions">
+  <template #title>{{ organisation?.name }}</template>
+  <template #meta>
+    <component :is="() => renderOrganisationStatus(organisation.status)" />
+    <span>{{ organisation.organisationShortId }}</span>
+  </template>
+
+  <!-- la clé du slot = la clé de la section -->
+  <template #documents="{ section }">
+    <OrganisationDocumentsSection
+      :organisation
+      :documents="organisationDetails.documents.table"
+      :title="section.label" />
+  </template>
+</EntityDetailShell></script></div>
+    <div class="card api tight grow">
+      <div class="hd">props &amp; slots du shell</div>
+      <div class="r"><div class="k">:details</div><div class="d">la config <code>defineEntityDetails</code></div></div>
+      <div class="r"><div class="k">:actions</div><div class="d">menu d’en-tête (<code>MenuOption[]</code>) ; <i>rafraîchir</i> est ajouté par le shell</div></div>
+      <div class="r"><div class="k">#title · #meta</div><div class="d">identité de l’entité, rendus dès <code>ready</code></div></div>
+      <div class="r"><div class="k">#actions <small>{ refresh, refreshing, submitting }</small></div><div class="d">actions d’en-tête personnalisées</div></div>
+      <div class="r"><div class="k">#&lt;key&gt; <small>{ section, goTo }</small></div><div class="d">un slot par section sans type — <code>goTo('items')</code> pour naviguer</div></div>
+      <div class="hd">au niveau de la config</div>
+      <div class="r"><div class="k">stats</div><div class="d"><code>defineEntityDetailStats({ cols, stats: [{ key, label, value, tone?, visual? }] })</code></div></div>
+      <div class="r"><div class="k">notices</div><div class="d">bandeaux info / warning / error avec <code>condition</code></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- 3.8 FORM LIFECYCLE (visual states) -->
+<section class="slide" data-sec="Admin">
+  <div class="kick"><span class="n">3.6</span>partie 3 · sections formulaire</div>
+  <h2>Une section formulaire, <em>quatre états</em> — tous automatiques.</h2>
+  <p class="focus">Vous fournissez un schéma et un <code>submit</code>. La liaison, la détection, le commit et la remise à zéro sont le travail du shell.</p>
+  <div class="flow">
+    <div class="state">
+      <h4><span class="k">1</span>liée</h4>
+      <div class="fiche"><div class="sec"><div class="sh"><b>Contacts</b></div><div class="fields"><div class="fld"><label>Téléphone</label><span>+33 4 72 00 00 00</span></div><div class="fld"><label>Site</label><span>ateliers-roux.fr</span></div></div></div></div>
+      <p><code>input</code> = l’entité chargée. Baseline = valeur serveur. Pas de pied.</p>
+    </div>
+    <div class="arr">→</div>
+    <div class="state">
+      <h4><span class="k">2</span>modifiée</h4>
+      <div class="fiche"><div class="sec dirty"><div class="sh"><b>Contacts</b><em>Modifications non enregistrées</em></div><div class="fields"><div class="fld"><label>Téléphone</label><span class="ch">+33 4 72 00 00 01</span></div><div class="fld"><label>Site</label><span>ateliers-roux.fr</span></div></div><div class="ft"><i>Annuler</i><i class="p">Enregistrer</i></div></div></div>
+      <p>Chemins modifiés exacts. Bordure, libellé, point du rail, pied. Quitter la page demande confirmation.</p>
+    </div>
+    <div class="arr">→</div>
+    <div class="state">
+      <h4><span class="k">3</span>en cours</h4>
+      <div class="fiche"><div class="sec dirty"><div class="sh"><b>Contacts</b><em>Enregistrement…</em></div><div class="fields"><div class="fld"><label>Téléphone</label><span class="ch">+33 4 72 00 00 01</span></div><div class="fld"><label>Site</label><span>ateliers-roux.fr</span></div></div><div class="ft"><i class="dis">Annuler</i><i class="p dis">Enregistrer…</i></div></div></div>
+      <p><code>submit(formData)</code> sous verrou : les autres sections ne peuvent pas enregistrer en même temps.</p>
+    </div>
+    <div class="arr">→</div>
+    <div class="state">
+      <h4><span class="k">4</span>propre à nouveau</h4>
+      <div class="fiche"><div class="sec"><div class="sh"><b>Contacts</b></div><div class="fields"><div class="fld"><label>Téléphone</label><span>+33 4 72 00 00 01</span></div><div class="fld"><label>Site</label><span>ateliers-roux.fr</span></div></div></div></div>
+      <p><code>true</code> → invalidation → refetch → baseline = nouvelle valeur. <code>false</code> → retour à l’état 2, erreurs sur les champs.</p>
+    </div>
+  </div>
+</section>
+
+<!-- 3.9 FORM CODE -->
+<section class="slide" data-sec="Admin">
+  <div class="kick"><span class="n">3.6</span>partie 3 · sections formulaire · code</div>
+  <h2>Quatre clés, <em>un contrat d’édition</em>.</h2>
+  <p class="focus">Avant : panneaux, flags de dirty, barre globale, rechargements. Après : une déclaration et une fonction <code>submit</code> qui renvoie un booléen.</p>
+  <div class="cols2">
+    <div class="code v1" data-path="avant · pages/organisations/_id.vue" data-lang="vue" data-hl="3-5,10-12"><script type="text/x-code"><ExpendPanel
+  :title="$t('sections.seller')"
+  :dirty="isDirtyForSections(['seller'])">
+  <OrganisationSellerInfo
+    :organisation="updatedOrganisation"
+    @reset="resetField"
+    @changes="updateField"
+    @search-organisations="searchOrganisations" />
+</ExpendPanel>
+
+// data(): sections: { informations: false, seller: false, persons: false, … }
+// + updatedOrganisation: clone(store.state.organisation.organisation)
+// + barre Réinitialiser / Enregistrer globale, en haut de page
+// + watchers de synchronisation, dispatch de rechargement après save</script></div>
+    <div class="col">
+      <div class="code" data-path="après · la section" data-lang="ts"><script type="text/x-code">defineEntityDetailFormSection({
+  key: 'identity',
+  label: () => $i18n.t('admin.organisations.detail.sections.identity.title'),
+  schema: () => organisationIdentityFormSchema({ organisation: organisation.value! }),
+  submit: organisationDetails.updateOrganisation,
+})</script></div>
+      <div data-hl="10,11,13" class="code" data-path="après · le submit, dans le loader" data-lang="ts"><script type="text/x-code">const { mutateAsync: save } = useMutation(() =>
+  $client.organisations.update.mutationOptions(),
+)
+
+async function updateOrganisation({ formData, api }) {
+  const { error, success } = await withErrorHandling(() =>
+    save({ organisationShortId: params.organisationShortId, organisation: formData }),
+  )
+  if (!success) {
+    handleFormErrors({ api, error })   // erreurs serveur → champs
+    return false                       // la section reste modifiée
+  }
+  return true                          // → invalidation → refetch → reset
+}</script></div>
+    </div>
+  </div>
+  <div class="facts"><span class="fact blue">options : input() · disabled() · pending() · reset() · notice(ctx) · headerEnd(ctx)</span><span class="fact">un même submit sert plusieurs sections</span></div>
+</section>
+
+<!-- 3.10 TABLES -->
+<section class="slide" data-sec="Admin">
+  <div class="kick"><span class="n">3.7</span>partie 4 · données liées</div>
+  <h2>Une relation = <em>le même schéma</em> que la liste, en compact.</h2>
+  <p class="focus">Trois déclarations : la table différée + son compteur dans le loader, la section dans la config, les colonnes compactes dans le schéma d’entité.</p>
+  <div class="row" style="align-items:center">
+    <div class="col" style="width:860px">
+      <div class="code"><script type="text/x-code" data-path="loader · table différée + compteur" data-lang="ts" data-hl="1,4">const contracts = deferred.table(
+  () => contractsTableSchema({ organisationShortId }),
+  {
+    count: background.count(() =>
+      $client.contracts.list.queryOptions({
+        input: organisationShortId,
+        select: (list) => list.length,
+      }),
+    ),
+  },
+)</script><script type="text/x-code" data-path="config · la section" data-lang="ts" data-hl="4,5">defineEntityDetailTableSection({
+  key: 'contracts',
+  label: () => $i18n.t('…sections.contracts.title'),
+  resource: () => organisationDetails.contracts,
+  fullViewTo: () => ({
+    name: 'contracts',
+    query: { 'filters.organisations': JSON.stringify([organisationShortId]) },
+  }),
+})</script><script type="text/x-code" data-path="schéma d’entité · colonnes compactes" data-lang="ts" data-hl="3-9">defineTableSchema({
+  // … colonnes complètes, filtres, actions de la liste
+  embed: {
+    columns: [
+      { key: 'referenceNumber' },
+      { key: 'name', width: 280 },
+      { key: 'status', width: 140 },
+    ],
+    rowActions: false,
+  },
+})</script></div>
+    </div>
+    <div class="col grow">
+      <div class="fiche"><div class="sec"><div class="sh"><b>Contrats <small>5</small></b><em style="color:var(--blue)">Vue complète →</em></div><div class="tb"><div><span>Référence</span><span>Nom</span><span>Statut</span></div><div><span>C-2024-118</span><span>Cadre annuel</span><i class="ok">ACTIF</i></div><div><span>C-2024-097</span><span>Vente aux enchères</span><i class="ok">ACTIF</i></div><div><span>C-2023-311</span><span>Dépôt-vente</span><i>CLOS</i></div></div><div class="tf"><span>5 résultats · page 1/1</span><span>recherche · colonnes · taille de page</span></div></div></div>
+      <div class="cols2">
+        <div class="card feat"><h4><span class="ic">⌛</span>différée</h4><p>0 requête avant que la section soit proche ou ciblée</p></div>
+        <div class="card feat"><h4><span class="ic">#</span>compteur indépendant</h4><p>total de la relation, insensible à la recherche</p></div>
+        <div class="card feat"><h4><span class="ic">↗</span>vue complète</h4><p>la liste entière, même filtre dans l’URL</p></div>
+        <div class="card feat"><h4><span class="ic">≡</span>défilement maîtrisé</h4><p>la table rend la main à la page en bout de course</p></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 3.11 RAIL -->
+<section class="slide" data-sec="Admin">
+  <div class="kick"><span class="n">3.8</span>partie 5 · le rail</div>
+  <h2>Le rail sait tout <em>avant</em> les tables.</h2>
+  <p class="focus">Compteurs, position, sections modifiées, alertes : le rail dérive de la config et des ressources — rien à câbler.</p>
+  <div class="row" style="align-items:center;justify-content:center;gap:40px">
+    <div class="fiche" style="width:300px"><div class="rail" style="border-left:0">
+      <h6>Édition</h6><div>Identité</div><div class="cur">Contacts <span class="dot"></span></div><div>Rôles &amp; hiérarchie</div><div>Commercial</div>
+      <h6>Données</h6><div>Utilisateurs <small>8</small></div><div>KYB <small>3</small></div><div>Adresses <small>2</small></div><div>Contrats <small>5</small></div><div>Items <small>37</small></div><div>Enchères <small>112</small></div>
+      <h6>Suivi</h6><div>Commentaires <small>14</small></div><div>Audit <small class="ld"></small></div>
+    </div></div>
+    <div class="callouts" style="width:560px">
+      <div class="callout"><div class="n">≡</div><div><b>groupes et sections</b><span>directement la config : <code>groups[].sections[]</code>. Une section <code>condition: false</code> ou sans droit n’apparaît pas.</span></div></div>
+      <div class="callout"><div class="n">37</div><div><b>compteurs</b><span>le <code>count</code> de la ressource (ou <code>count: () => …</code> sur la section). Skeleton tant que non résolu — jamais un faux zéro.</span></div></div>
+      <div class="callout"><div class="n">●</div><div><b>section active</b><span>scrollspy sur le document. Un clic → activation de la ressource différée + défilement.</span></div></div>
+      <div class="callout"><div class="n">•</div><div><b>point « modifié » · alerte</b><span>le dirty des sections formulaire / éditeur ; <code>alert: () => boolean</code> pour signaler une action requise.</span></div></div>
+    </div>
+    <div class="code sm" style="width:440px" data-path="ce qui alimente le rail" data-lang="ts"><script type="text/x-code">// compteur : la ressource
+deferred.table(schema, {
+  count: background.count(() => …),
+})
+
+// ou explicitement sur la section
+{ key: 'audit',
+  count: () => auditCount.value ?? { state: 'loading' },
+  alert: () => hasPendingKyb.value,
+  condition: () => canSeeAudit.value,
+  accessKeys: ['ORGANISATION.AUDIT.READ'] }</script></div>
+  </div>
+</section>
+
+<!-- 3.12 EDITORS -->
+<section class="slide" data-sec="Admin">
+  <div class="kick"><span class="n">3.9</span>partie 6 · éditeurs sur mesure</div>
+  <h2>Le même contrat, <em>sans formulaire</em>.</h2>
+  <p class="focus">Photos d’un item, ressources d’une séance : un composant maison enregistre trois choses et reçoit pied, verrou et garde.</p>
+  <div class="row" style="align-items:center">
+    <div class="col" style="width:560px">
+      <div class="code" data-path="config · ItemDetails.vue" data-lang="ts"><script type="text/x-code">defineEntityDetailEditorSection({
+  key: 'resources',
+  label: () => $i18n.t('admin.items.detail.sections.resources.title'),
+  disabled: () => !itemDetails.canManage.value,
+})</script></div>
+      <div class="card api tight">
+        <div class="hd">useEntityDetailEditor({ dirty, reset, submit })</div>
+        <div class="r"><div class="k">dirty</div><div class="d">votre détection de changement</div></div>
+        <div class="r"><div class="k">reset()</div><div class="d">bouton Annuler du pied</div></div>
+        <div class="r"><div class="k">submit() → boolean</div><div class="d">bouton Enregistrer, sous le verrou</div></div>
+        <div class="r"><div class="k">→ disabled</div><div class="d">à propager à vos contrôles</div></div>
+      </div>
+    </div>
+    <div data-hl="12" class="code grow" data-path="composant · ItemResourcesSection.vue — rendu dans <template #resources>" data-lang="ts"><script type="text/x-code">const pictures = ref(cloneDeep(props.item.pictures))
+const dirty = computed(() => !isEqual(pictures.value, props.item.pictures))
+
+function cancel() {
+  pictures.value = cloneDeep(props.item.pictures)
+}
+async function save() {
+  /* upload · mutation */
+  return true
+}
+
+const editor = useEntityDetailEditor({ dirty, reset: cancel, submit: save })
+
+// template :
+// <ItemResourceField v-model:value="pictures"
+//   :disabled="editor.disabled.value || saving" /></script></div>
+  </div>
+</section>
+
+<!-- 3.13 EXEMPLE -->
+<section class="slide" data-sec="Admin">
+  <div class="kick"><span class="n">3.10</span>exemple</div>
+  <h2>Hiérarchie &amp; procurations : trois surfaces → <em>une section</em>.</h2>
+  <p class="focus">Un cas métier riche qui n’a rien demandé au shell : parent et enfants sont des champs, la matrice est un champ custom, la transaction vit dans <code>submit</code>.</p>
+  <div class="row" style="align-items:center">
+    <div class="card diagram" style="width:560px">
+      <svg viewBox="0 0 480 400" aria-label="Avant : trois surfaces">
+        <g font-size="13">
+          <text x="20" y="30" font-size="12" class="mono" fill="#98A2B8" font-weight="700" letter-spacing="2">V1</text>
+          <rect x="20" y="46" width="440" height="78" rx="12" fill="#F5F6FA" stroke="#D5DBE7"/><text x="36" y="74" font-weight="700" fill="#0C1526">formulaire · champ parent</text><text x="36" y="100" fill="#55617A">+ organisation-children.vue : dialogue d’ajout, délier</text>
+          <rect x="20" y="138" width="440" height="78" rx="12" fill="#F5F6FA" stroke="#D5DBE7"/><text x="36" y="166" font-weight="700" fill="#0C1526">/organisations/:id/hierarchy · autre route</text><text x="36" y="192" fill="#55617A">arbre en lecture seule, nouvel onglet</text>
+          <rect x="20" y="230" width="440" height="78" rx="12" fill="#F5F6FA" stroke="#D5DBE7"/><text x="36" y="258" font-weight="700" fill="#0C1526">action « Procuration » · modale 600 px</text><text x="36" y="284" fill="#55617A">bascule donner / recevoir · arbre · confirmation</text>
+          <text x="240" y="360" text-anchor="middle" fill="#98A2B8" font-size="13">l’administrateur assemble le modèle dans sa tête</text>
+        </g>
+      </svg>
+    </div>
+    <div class="col grow">
+      <div data-hl="5,9" class="code" data-path="V2 · un formulaire dont un champ est la matrice" data-lang="ts"><script type="text/x-code">defineEntityDetailFormSection({
+  key: 'roles',
+  label: () => $i18n.t('…sections.roles.title'),
+  schema: () => organisationRolesFormSchema({
+    hierarchy: organisationDetails.hierarchy.value,   // parent · enfants · matrice
+    organisation: organisation.value!,
+    shops: organisationDetails.shops.value,
+  }),
+  submit: organisationDetails.updateOrganisationHierarchy,
+  disabled: () =>
+    !organisationDetails.canManage.value || organisationDetails.hierarchyError.value,
+})</script></div>
+      <div class="cols3">
+        <div class="card feat"><h4><span class="ic">≈</span>champs ordinaires</h4><p>parent et enfants sont des selects distants</p></div>
+        <div class="card feat"><h4><span class="ic">⊞</span>champ custom</h4><p>la matrice dépend d’eux et prévisualise le graphe</p></div>
+        <div class="card feat"><h4><span class="ic am">tx</span>submit = transaction</h4><p>cycles · ordre des arêtes · compensation · refresh</p></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 3.14 MARCHE À SUIVRE -->
+<section class="slide" data-sec="Admin">
+  <div class="kick"><span class="n">3.11</span>en pratique</div>
+  <h2>Ajouter une fiche, ou une section.</h2>
+  <p class="focus">Quatre fichiers, dans cet ordre.</p>
+  <div class="cols4 eq">
+    <div class="card step"><div class="n">1</div><h4>Le loader</h4><p><code>entities/&lt;x&gt;/detail/composables/use&lt;X&gt;Detail.ts</code></p><p>entité → <code>essential</code> · compteurs → <code>background</code> · tables → <code>deferred</code> · fonctions <code>submit</code></p></div>
+    <div class="card step"><div class="n">2</div><h4>Les schémas</h4><p><code>entities/&lt;x&gt;/detail/schema.tsx</code></p><p>formulaires de section · pour les relations : le <code>&lt;y&gt;TableSchema({ &lt;x&gt;ShortId })</code> existant + son <code>embed</code></p></div>
+    <div class="card step"><div class="n">3</div><h4>Config + shell</h4><p><code>components/entities/&lt;x&gt;/detail/&lt;X&gt;Details.vue</code></p><p><code>defineEntityDetails</code> · <code>&lt;EntityDetailShell&gt;</code> · <code>#title</code> · <code>#meta</code> · un slot par section sur mesure</p></div>
+    <div class="card step"><div class="n">4</div><h4>La route</h4><p><code>pages/&lt;x&gt;/[id].vue</code></p><p><code>definePageMeta</code> — accès, fil d’Ariane via <code>ctx.detailLabel</code> — et le composant. Rien d’autre.</p></div>
+  </div>
+  <div class="facts"><span class="fact">déjà sur ce modèle : contrats · factures · items · organisations · séances · utilisateurs</span><span class="fact blue">tests montés : packages/shared-ui/test/entity-details</span></div>
+</section>
+
+<!-- 3.12 SELECTEURS DISTANTS -->
+<section class="slide" data-sec="Admin">
+  <div class="kick"><span class="n">3.12</span>autres briques · options distantes du moteur de formulaire</div>
+  <h2>Un champ qui cherche dans <em>toute la base</em>.</h2>
+  <p class="focus">L’admin opère sur tout le jeu de données : les sélecteurs paginent côté serveur. Le champ déclare deux requêtes, le moteur fait le reste.</p>
+  <div class="row" style="align-items:center">
+    <div class="col" style="width:520px;gap:16px">
+      <div class="selmock">
+        <div class="lbl">Organisation <em>*</em></div>
+        <div class="inp"><span class="chip">Mairie de Lyon <i>×</i></span><span class="cur">mai</span><span class="mk" style="right:-14px;top:-14px">4</span></div>
+        <div class="dd">
+          <div class="srch"><span>mai</span><span class="hint">2 caractères min · 250 ms</span><span class="mk" style="left:-14px;top:-2px">1</span></div>
+          <div class="opt on"><b>Mairie de Lyon</b><small>69001 · 3 filiales</small></div>
+          <div class="opt"><b>Mairie de Marseille</b><small>13001</small></div>
+          <div class="opt"><b>Mairie de Nantes</b><small>44000 · 1 filiale</small></div>
+          <div class="opt"><b>Mairie de Toulouse</b><small>31000</small></div>
+          <div class="opt dim"><b>Maison Départementale…</b><small>75012</small></div>
+          <div class="more"><i></i>page 2 · 25 suivants<span class="mk" style="right:-14px;top:-4px">2</span></div>
+        </div>
+      </div>
+      <div class="legend" style="grid-template-columns:1fr 1fr;gap:10px 14px">
+        <div><span class="mk">1</span><div><b>recherche</b>debounce, longueur min, réponses périmées rejetées</div></div>
+        <div><span class="mk">2</span><div><b>pagination</b>page ou curseur, chargée au défilement, accumulée</div></div>
+        <div><span class="mk">3</span><div><b>dépendances</b><code>refreshOn</code> recharge, <code>clearOnInvalid</code> vide si la valeur n’existe plus</div></div>
+        <div><span class="mk">4</span><div><b>hydratation</b>la valeur enregistrée est résolue par <code>resolveSelected</code>, même hors de la page courante</div></div>
+      </div>
+    </div>
+    <div class="code sm grow" data-path="shared-business · entities/organisations/fields.tsx · organisationSelectField (extrait)" data-lang="ts" data-hl="2-4,7,13,16"><script type="text/x-code">options: {
+  mode: 'remote',
+  search: { debounce: 250, minLength: 2 },
+  pagination: { type: 'page', size: 25 },
+  clearOnInvalid: true,
+  refreshOn: params.refreshOn,
+  source: ({ search, page }) =>
+    $client.organisations.search.queryOptions({
+      input: { q: search || undefined, from: (page.index - 1) * page.size, size: page.size },
+      select: ({ results, total }) => ({
+        options: results.map(getOrganisationSelectOption),
+        hasMore: page.index * page.size < total,
+      }),
+    }),
+  resolveSelected: ({ value }) =>
+    $client.organisations.get.queryOptions({
+      input: [String(value)],
+      select: (organisation) => [getOrganisationSelectOption(organisation)],
+    }),
+}</script></div>
+  </div>
+</section>
+
+<!-- 3.12b TREE + PICKERS -->
+<section class="slide" data-sec="Admin">
+  <div class="kick"><span class="n">3.12</span>autres briques · options distantes · arbre &amp; sélecteurs</div>
+  <h2>Même contrat, <em>en arbre</em> — et un sélecteur par entité.</h2>
+  <p class="focus">Racines paginées, branches chargées à l’ouverture, chemin complet reconstitué pour la valeur enregistrée.</p>
+  <div class="row" style="align-items:center">
+    <div class="code sm grow" data-path="organisationTreeSelectField · la source reçoit parentOption" data-lang="ts" data-hl="3,5,8,15,17"><script type="text/x-code">options: {
+  mode: 'remote', search: { debounce: 250, minLength: 2 }, pagination: { type: 'page', size: 25 },
+  source: ({ search, page, parentOption }) => {
+    if (parentOption)                     // ouverture d’une branche : ses enfants
+      return $client.organisations.get.queryOptions({
+        input: [parentOption.key, { filters: ['children'] }],
+        select: (organisation) => ({ options: organisation.children.map(toTreeOption), hasMore: false }),
+      })
+    return $client.organisations.search.queryOptions({   // racines paginées
+      input: { q: search, terms_filters: { levels: [1] }, from: …, size: page.size },
+      select: ({ results, total }) => ({
+        options: results.map(toTreeOption),
+        hasMore: page.index * page.size < total,
+      }),
+    })
+  },
+  resolveSelected: ({ value }) =>          // la valeur enregistrée → son chemin complet
+    $client.organisations.get.queryOptions({
+      input: [value, { filters: ['parents'] }],
+      select: getOrganisationTreeSelectPath,
+    }),
+}</script></div>
+    <div class="col" style="width:470px;gap:16px">
+      <div class="treemock">
+        <div class="lbl">Organisation parente</div>
+        <div class="node"><i class="tg">▾</i>Groupe Hospitalier Sud <small>racine · page 1</small></div>
+        <div class="node d1"><i class="tg">▾</i>CHU de Bordeaux</div>
+        <div class="node d2 on"><i class="dot"></i>Pôle logistique <small>valeur enregistrée</small></div>
+        <div class="node d2"><i class="dot"></i>Pharmacie centrale</div>
+        <div class="node d1"><i class="tg">▸</i>CH de Libourne <small class="lazy">chargé à l’ouverture</small></div>
+        <div class="node"><i class="tg">▸</i>Métropole de Lille</div>
+        <div class="node"><i class="tg">▸</i>Région Occitanie</div>
+        <div class="node more">… 22 racines suivantes</div>
+      </div>
+      <div class="card feat" style="gap:10px">
+        <h4><span class="ic">∀</span>un sélecteur par entité</h4>
+        <div class="facts"><span class="fact blue">organisations</span><span class="fact blue">utilisateurs</span><span class="fact blue">items</span><span class="fact blue">séances</span><span class="fact">factures</span><span class="fact">fabricants · modèles</span></div>
+        <p>Chaque schéma admin qui pointe une autre entité utilise ce mécanisme — même debounce, même pagination, même hydratation.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 3.13 DATALIST ROOT -->
+<section class="slide" data-sec="Admin">
+  <div class="kick"><span class="n">3.13</span>autres briques · DataListRoot</div>
+  <h2>La table <em>en pièces détachées</em>.</h2>
+  <p class="focus">Même schéma, même moteur — mais vous posez chaque pièce où vous voulez. Pour les écrans admin qui ne rentrent pas dans le DataList standard.</p>
+  <div class="row" style="align-items:center">
+    <div class="col" style="width:560px;gap:14px">
+      <div class="dlmock">
+        <div class="hd"><b>Documents <small>12</small></b><span class="tools"><i class="s">🔍 rechercher…</i><i>⚙</i><i>↻</i><i class="p">+ Demander</i></span><span class="mk" style="left:-14px;top:-14px">1</span><span class="mk" style="right:-14px;top:-14px">2</span></div>
+        <div class="tb"><div><span>Document</span><span>Type</span><span>Déposé le</span><span>Statut</span></div><div><span>Carte d’identité — recto.pdf</span><span>Identité</span><span>18/05/2026</span><i class="ok">VALIDÉ</i></div><div><span>Carte d’identité — verso.pdf</span><span>Identité</span><span>18/05/2026</span><i class="ok">VALIDÉ</i></div><div><span>Mandat de l’organisation.pdf</span><span>Mandat</span><span>19/05/2026</span><i class="w">À REVOIR</i></div><span class="mk" style="left:-14px;bottom:-14px">3</span></div>
+        <div class="ft"><span>1–3 sur 12 · <b>Vue complète ↗</b></span><span class="pg"><i>‹</i><i class="on">1</i><i>2</i><i>3</i><i>4</i><i>›</i></span><span class="mk" style="right:-14px;bottom:-14px">4</span></div>
+      </div>
+      <div class="legend" style="grid-template-columns:1fr 1fr;gap:8px 14px">
+        <div><span class="mk">1</span><div><b>DataListHeader</b>slots <code>#title</code> · <code>#actions</code> · <code>#band</code></div></div>
+        <div><span class="mk">2</span><div><b>contrôles</b>Search · Columns · Refresh · Sort · FilterPanel — et vos boutons</div></div>
+        <div><span class="mk">3</span><div><b>DataListTable · DataListGrid</b>ou <code>DataListContent</code> avec votre rendu des lignes</div></div>
+        <div><span class="mk">4</span><div><b>ResultCount · Pagination · PageSize</b>rendu par défaut, ou le vôtre via le slot</div></div>
+      </div>
+    </div>
+    <div class="code sm grow">
+      <script type="text/x-code" data-path="composer" data-lang="vue" data-hl="1,2,5,11,16"><!-- const documentTable = useTable(documentSchema) — le schéma de la liste, inchangé -->
+  <DataListRoot :table="documentTable" density="compact">
+    <NCard :segmented="{ content: true, footer: true }">
+      <template #header>
+        <DataListHeader>
+          <template #title>
+            <h2>Documents</h2>
+            <DataListResultCount display="total" />
+          </template>
+          <template #actions>
+            <DataListSearch /><DataListColumns /><DataListRefresh />
+            <NButton type="info">+ Demander</NButton>
+          </template>
+        </DataListHeader>
+      </template>
+      <DataListTable :max-height="220" />
+      <template #footer>
+        <DataListResultCount display="progress" />
+        <DataListPagination navigation="available" :page-slot="3" />
+      </template>
+    </NCard>
+  </DataListRoot></script>
+      <script type="text/x-code" data-path="surcharger un rendu" data-lang="vue" data-hl="2,7,12,18"><!-- chaque pièce expose son état par slot : rendu par défaut si vous n’en donnez pas -->
+<DataListResultCount v-slot="{ total }">
+  <NTag size="small">{{ total }} pièces</NTag>
+</DataListResultCount>
+
+<DataListRefresh v-slot="{ refresh, loading, triggerProps }">
+  <NButton v-bind="triggerProps" :loading="loading" @click="refresh">Recharger</NButton>
+</DataListRefresh>
+
+<DataListPagination v-slot="{ page, pageCount, setPage }">
+  <StepPager :page="page" :count="pageCount" @change="setPage" />
+</DataListPagination>
+
+<!-- ou remplacer le rendu des lignes lui-même -->
+<DataListContent v-slot="{ rows, isLoading }">
+  <DocumentTimeline :documents="rows" :loading="isLoading" />
+</DataListContent></script>
+      <script type="text/x-code" data-path="votre propre pièce" data-lang="ts" data-hl="3,5"><!-- un composant maison branché sur le même moteur -->
+// <script setup> — n’importe où sous <DataListRoot>
+const { queryState, queryContent, selection, tableApi } = useTableInternals()
+
+const total = computed(() => queryState.paginationMeta.value.rowTotalCount)
+const rows = computed(() => queryContent.data.value)
+const selected = selection.selectedKeys
+
+// <DataList> lui-même n’est que DataListRoot + DataListDefault :
+// la mise en page standard est une composition comme la vôtre.</script>
+    </div>
+  </div>
+</section>
+<style>
+.selmock,.treemock,.dlmock{position:relative;font-size:13px;color:var(--ink)}
+.selmock .lbl,.treemock .lbl{font-size:12px;font-weight:600;color:var(--sub);margin-bottom:6px}.selmock .lbl em{color:#D64545;font-style:normal}
+.selmock .inp{position:relative;display:flex;align-items:center;gap:8px;border:1.5px solid var(--blue);border-radius:8px;padding:7px 10px;background:#fff;box-shadow:0 0 0 3px #DCE7FF}
+.selmock .chip{background:var(--blue-soft);color:var(--blue);border-radius:6px;padding:2px 8px;font-size:12px;font-weight:600}.selmock .chip i{font-style:normal;margin-left:6px;color:var(--faint)}
+.selmock .cur{border-right:1.5px solid var(--ink);padding-right:1px;animation:none}
+.selmock .dd{position:relative;margin-top:8px;border:1px solid var(--line);border-radius:10px;background:#fff;box-shadow:var(--sh-lg,0 18px 40px -12px rgba(16,24,40,.26));overflow:visible}
+.selmock .srch{position:relative;display:flex;justify-content:space-between;padding:8px 12px;border-bottom:1px solid var(--line);font-family:var(--mono);font-size:12px;color:var(--ink)}
+.selmock .srch .hint{color:var(--faint);font-family:var(--body);font-size:11px}
+.selmock .opt{display:flex;justify-content:space-between;align-items:baseline;padding:8px 12px;border-bottom:1px solid var(--line)}
+.selmock .opt b{font-weight:500}.selmock .opt small{color:var(--faint);font-size:11px}
+.selmock .opt.on{background:var(--blue-soft)}.selmock .opt.on b{color:var(--blue);font-weight:600}
+.selmock .opt.dim{opacity:.45}
+.selmock .more{position:relative;display:flex;align-items:center;gap:10px;padding:8px 12px;font-size:11.5px;color:var(--faint);font-family:var(--mono)}
+.selmock .more i{width:12px;height:12px;border-radius:50%;border:2px solid var(--line-2);border-top-color:var(--blue);display:inline-block}
+.treemock{border:1px solid var(--line);border-radius:10px;background:#fff;padding:12px 14px;box-shadow:var(--sh)}
+.treemock .node{display:flex;align-items:center;gap:8px;padding:5px 8px;border-radius:6px;font-size:13px}
+.treemock .node small{margin-left:auto;color:var(--faint);font-size:11px;font-family:var(--mono)}
+.treemock .node small.lazy{color:var(--amber-deep)}
+.treemock .d1{margin-left:22px}.treemock .d2{margin-left:44px}
+.treemock .node.on{background:var(--blue-soft);color:var(--blue);font-weight:600}
+.treemock .tg{font-style:normal;color:var(--faint);width:12px;font-size:12px}.treemock .dot{width:6px;height:6px;border-radius:50%;background:var(--line-2);margin:0 3px}.treemock .on .dot{background:var(--blue)}
+.treemock .more{color:var(--faint);font-family:var(--mono);font-size:11px;margin-left:22px}
+.dlmock{border:1px solid var(--line-2);border-radius:12px;background:#fff;box-shadow:var(--sh);display:flex;flex-direction:column}
+.dlmock .hd{position:relative;display:flex;align-items:center;justify-content:space-between;padding:10px 14px;border-bottom:1px solid var(--line)}
+.dlmock .hd b{font-size:14px;font-weight:700}.dlmock .hd small{font-family:var(--mono);font-size:10.5px;background:#EDF0F6;border-radius:999px;padding:1px 7px;color:var(--sub);margin-left:6px;font-weight:500}
+.dlmock .tools{display:flex;gap:6px;align-items:center}
+.dlmock .tools i{font-style:normal;font-size:11px;border:1px solid var(--line-2);border-radius:6px;padding:4px 8px;color:var(--sub)}
+.dlmock .tools i.s{width:120px;color:var(--faint)}.dlmock .tools i.p{background:var(--blue);color:#fff;border-color:var(--blue);font-weight:600}
+.dlmock .tb{position:relative;font-size:11.5px}
+.dlmock .tb div{display:grid;grid-template-columns:1.6fr .8fr .8fr 74px;gap:8px;padding:7px 14px;border-bottom:1px solid var(--line);color:var(--sub)}
+.dlmock .tb div:first-child{background:#FAFBFD;font-family:var(--mono);font-size:9.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--faint)}
+.dlmock .tb div span:first-child{color:var(--blue);font-weight:600}
+.dlmock .tb i{font-style:normal;font-family:var(--mono);font-size:9.5px;padding:1px 6px;border-radius:4px;background:#EDF0F6;text-align:center}
+.dlmock .tb i.ok{background:var(--green-soft);color:var(--green)}.dlmock .tb i.w{background:#FFF3DE;color:var(--amber-deep)}
+.dlmock .ft{position:relative;display:flex;justify-content:space-between;align-items:center;padding:9px 14px;font-size:11px;color:var(--faint)}
+.dlmock .ft b{color:var(--blue);font-weight:600}
+.dlmock .pg{display:flex;gap:3px}.dlmock .pg i{font-style:normal;width:20px;height:20px;border:1px solid var(--line);border-radius:4px;display:inline-flex;align-items:center;justify-content:center;font-size:10.5px}
+.dlmock .pg i.on{background:var(--navy);color:#fff;border-color:var(--navy)}
+</style>
+
+<!-- DIVIDER 04 -->
+<section class="slide hero divider" data-sec="Inventory">
+  <div class="orb a"></div><div class="orb b"></div>
+  <div class="num">04</div>
+  <h1>Inventory</h1>
+  <p class="sub">Hors-ligne complet, sans second chemin de données.</p>
+</section>
+
+<!-- 3 couches -->
+<section class="slide" data-sec="Inventory">
+  <div class="kick"><span class="n">4.1</span>le modèle</div>
+  <h2>Trois couches. <em>Deux sont de la configuration.</em></h2>
+  <p class="focus">Coquille pré-cachée · référentiel = cache Query persisté · brouillons locaux publiés plus tard.</p>
+  <div class="cols3 eq">
+    <div class="card feat" style="gap:14px">
+      <h4><span class="ic">1</span>La coquille</h4>
+      <span class="fact">@vite-pwa/nuxt · Workbox</span>
+      <p>HTML, JS, CSS, polices pré-cachés au premier chargement.</p>
+      <p><code>navigateFallback: '/'</code> — toute route s’ouvre hors-ligne.</p>
+      <p>Mise à jour proposée (<code>registerType: 'prompt'</code>), vérifiée toutes les 60 s.</p>
+    </div>
+    <div class="card feat" style="gap:14px;border-color:#C6D7FA;background:linear-gradient(180deg,#FDFDFF,#F6F9FF)">
+      <h4><span class="ic">2</span>Le référentiel</h4>
+      <span class="fact blue">cache TanStack Query → IndexedDB</span>
+      <p>Catégories, caractéristiques, canvases, fabricants, modèles, organisations, boutique.</p>
+      <p><b>Liste blanche</b> d’opérations · scope <code>session × shop</code> · 24 h.</p>
+      <p>Préchargé au login · restauré au démarrage · rafraîchi au retour du réseau.</p>
+      <p style="color:var(--blue);font-weight:600">→ les écrans ne changent pas</p>
+    </div>
+    <div class="card feat" style="gap:14px;border-color:#F7DDB0;background:linear-gradient(180deg,#FFFDFA,#FFF8EC)">
+      <h4><span class="ic am">3</span>Les brouillons</h4>
+      <span class="fact am">store Pinia + idb-keyval</span>
+      <p>Écrits en local d’abord, scopés par personne et boutique.</p>
+      <p><code>local → publishing → published</code>, progression d’upload persistée.</p>
+      <p>Fabricants / modèles créés hors-ligne, réconciliés à la publication.</p>
+    </div>
+  </div>
+  <p class="txt" style="text-align:center;font-size:13.5px">les mutations restent en ligne — le brouillon local <i>est</i> la file d’attente</p>
+</section>
+
+<!-- référentiel -->
+<section class="slide" data-sec="Inventory">
+  <div class="kick"><span class="n">4.2</span>le référentiel</div>
+  <h2>Quoi persister, comment, pour qui.</h2>
+  <p class="focus">Une liste blanche d’opérations, un persister IndexedDB scopé, un préchargement au login.</p>
+  <div class="row" style="align-items:center">
+    <div class="col grow">
+      <div class="code sm"><script type="text/x-code" data-path="utils/query-persistence.ts" data-lang="ts" data-hl="1-5">const PERSISTED_QUERY_OPERATIONS = new Set([
+  'auth.getLoggedUser', 'canvases.list', 'categories.list',
+  'characteristics.list', 'manufacturers.list', 'models.list',
+  'organisations.get', 'organisations.query', 'shops.get',
+])
+
+// reconnues par la forme de la clé : ['api', controller, operation, …]
+export function isInventoryPersistedQueryKey(queryKey: readonly unknown[]) {
+  const [root, controller, operation] = queryKey
+  return root === 'api' && PERSISTED_QUERY_OPERATIONS.has(`${controller}.${operation}`)
+}</script><script type="text/x-code" data-path="composables/useInventoryOfflineCatalog.ts" data-lang="ts" data-hl="8">const categories = useQuery(
+  () => $client.categories.list.queryOptions({
+    input: { visibleShopShortIds: shopStore.currentShopId },
+  }),
+  { defaultValue: [] },
+)
+
+async function preload() {               // appelé au login
+  await Promise.all([
+    canvases.suspense(),
+    categories.suspense(),
+    characteristics.suspense(),
+    $queryClient.prefetchQuery($client.manufacturers.list.queryOptions({})),
+  ])
+}</script></div>
+    </div>
+    <div class="code sm" data-path="apps/inventory-front/app/config/query.ts" data-lang="ts" data-hl="9-10,14-19"><script type="text/x-code">export const queryConfig = defineQueryConfig(() => {
+  onlineManager.setEventListener(/* online / offline → TanStack */)
+
+  const queryClient = new QueryClient({ defaultOptions: { queries: {
+    staleTime: 24 * 60 * 60_000, gcTime: 24 * 60 * 60_000,
+    networkMode: 'online', refetchOnReconnect: 'always', retry: 1,
+  } } })
+
+  queryPersistence = createIndexedDbQueryPersister({
+    databaseName: 'agorastore-inventory-query',
+    getScope: () => `${sessionScope}:${shopShortId}`,
+  })
+
+  return {
+    queryClient,
+    persistence: {
+      buster: 'inventory-query-v4',
+      maxAge: 24 * 60 * 60_000,
+      dehydrateOptions: { shouldDehydrateQuery: shouldPersistInventoryQuery },
+      persister: queryPersistence.persister,
+    },
+  }
+})</script></div>
+  </div>
+</section>
+
+<!-- brouillons -->
+<section class="slide" data-sec="Inventory">
+  <div class="kick"><span class="n">4.3</span>les brouillons</div>
+  <h2>Local d’abord. <em>Publication reprise.</em></h2>
+  <p class="focus">Le cycle d’un brouillon, et ce qu’un écran en voit.</p>
+  <div class="card diagram grow">
+    <svg viewBox="0 0 1400 380" aria-label="Cycle d’un brouillon">
+      <defs><marker id="d-ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0 0L10 5 0 10z" fill="#D98F1F"/></marker></defs>
+      <g font-size="14">
+        <rect x="20" y="60" width="300" height="160" rx="14" fill="#FFF3DE" stroke="#F7DDB0"/>
+        <text x="40" y="94" font-weight="700" fill="#D98F1F" font-size="17" class="mono">local</text>
+        <text x="40" y="126" fill="#55617A">draftStore.create / patchDraft</text>
+        <text x="40" y="150" fill="#55617A">IndexedDB · drafts:person:shop</text>
+        <text x="40" y="174" fill="#55617A">photos incluses · sans réseau</text>
+        <text x="40" y="204" fill="#8A93A8" font-size="12.5">fabricant / modèle inconnu → créé en local</text>
+        <path d="M320 140h40" stroke="#D98F1F" stroke-width="1.5" marker-end="url(#d-ar)"/>
+        <text x="340" y="126" text-anchor="middle" font-size="12" class="mono" fill="#D98F1F">publish()</text>
+        <rect x="362" y="60" width="380" height="160" rx="14" fill="#fff" stroke="#D5DBE7"/>
+        <text x="382" y="94" font-weight="700" fill="#0C1526" font-size="17" class="mono">publishing</text>
+        <text x="382" y="126" fill="#55617A">1 · brouillon serveur créé</text>
+        <text x="382" y="150" fill="#55617A">2 · ressources uploadées une à une</text>
+        <text x="382" y="174" fill="#55617A">3 · références locales → serveur</text>
+        <text x="382" y="204" fill="#8A93A8" font-size="12.5" class="mono">publishProgress · uploadedResourceKeys persistés</text>
+        <path d="M742 140h40" stroke="#D98F1F" stroke-width="1.5" marker-end="url(#d-ar)"/>
+        <rect x="784" y="60" width="300" height="160" rx="14" fill="#E7F7EE" stroke="#BFE8D2"/>
+        <text x="804" y="94" font-weight="700" fill="#189A54" font-size="17" class="mono">published</text>
+        <text x="804" y="126" fill="#55617A">l’item existe côté serveur</text>
+        <text x="804" y="150" fill="#55617A">le brouillon local est conservé</text>
+        <text x="804" y="174" fill="#55617A">comme trace</text>
+        <path d="M550 220v50H170v-50" stroke="#D64545" stroke-width="1.5" fill="none" stroke-dasharray="6 4" marker-end="url(#d-ar)"/>
+        <text x="360" y="300" text-anchor="middle" fill="#D64545" font-size="13.5" font-weight="600">app fermée · réseau coupé → au retour : publishing ⇒ local, les ressources déjà envoyées ne sont pas renvoyées</text>
+        <rect x="1120" y="60" width="260" height="160" rx="14" fill="#16294F"/>
+        <text x="1140" y="94" font-weight="700" fill="#fff" font-size="15">ce que l’écran voit</text>
+        <text x="1140" y="126" fill="#B8C6E4" font-size="13" class="mono">onlineManager.isOnline()</text>
+        <text x="1140" y="150" fill="#B8C6E4" font-size="13" class="mono">draft.status</text>
+        <text x="1140" y="174" fill="#B8C6E4" font-size="13" class="mono">draft.publishProgress</text>
+        <text x="1140" y="204" fill="#FDBF62" font-size="12.5">pastille hors-ligne · barre de progression</text>
+      </g>
+    </svg>
+  </div>
+</section>
+
+<!-- CLOSING -->
+<section class="slide hero" data-sec="">
+  <div class="orb a"></div><div class="orb b"></div><div class="orb c"></div>
+  <div class="eyebrow">Le fil rouge</div>
+  <h1>Le code métier <em style="font-style:normal;color:var(--amber-light)">déclare</em>.<br>La plateforme <em style="font-style:normal;color:var(--amber-light)">opère</em>.</h1>
+  <div class="hosts">
+    <span class="host"><i></i>contrat · contrôleur</span><span class="host"><i></i>schéma de table · de formulaire · de catalogue</span><span class="host"><i></i>loader · sections · submit</span><span class="host"><i></i>plan de prefetch</span><span class="host"><i></i>source d’options distantes</span><span class="host"><i></i>config d’app</span>
+  </div>
+  <div class="herostats" style="margin-top:32px">
+    <div class="hstat"><div class="v"><em>Query</em></div><div class="l">identité de cache · invalidation · SSR · prefetch</div></div>
+    <div class="hstat"><div class="v"><em>Market</em></div><div class="l">catalogue · SEO · images OG · découverte</div></div>
+    <div class="hstat"><div class="v"><em>Admin</em></div><div class="l">chargement étagé · état modifié · verrous · rail · sélecteurs · pièces de table</div></div>
+    <div class="hstat"><div class="v"><em>Inventory</em></div><div class="l">coquille · référentiel · brouillons</div></div>
+  </div>
+</section>
+</div></div>
+<div id="progress"><i></i></div>
+<div id="overview"><div class="grid" id="ov-grid"></div></div>
+<script>
+const KW = new Set('const let var function return if else for of in while do switch case break continue new class extends import export from default async await try catch finally throw typeof instanceof void delete yield this super null undefined true false as type interface enum implements readonly keyof satisfies declare abstract static get set is never unknown any string number boolean object symbol bigint'.split(' '));
+function esc(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+function hlLine(line, lang){
+  let out='', i=0, n=line.length; const isVue = lang==='vue';
+  while(i<n){
+    const ch=line[i];
+    if(line.startsWith('//',i)||line.startsWith('<!--',i)||line.startsWith('/*',i)){ out+='<span class="cm">'+esc(line.slice(i))+'</span>'; break; }
+    if(ch==='"'||ch==="'"||ch==='`'){ let j=i+1; while(j<n&&line[j]!==ch){ if(line[j]==='\\')j++; j++; } const s=line.slice(i,j+1);
+      if(ch==='`') out+='<span class="str">'+esc(s).replace(/\$\{[^}]*\}/g,m=>'</span><span class="pr">'+m+'</span><span class="str">')+'</span>'; else out+='<span class="str">'+esc(s)+'</span>'; i=j+1; continue; }
+    if(ch==='<' && /[A-Za-z\/!]/.test(line[i+1]||'')){ const m=line.slice(i).match(/^<\/?[A-Za-z][\w.-]*/); if(m){ out+='<span class="pun">&lt;</span>'+(m[0][1]==='/'?'<span class="pun">/</span>':'')+'<span class="tg">'+esc(m[0].replace(/^<\/?/,''))+'</span>'; i+=m[0].length; continue; } }
+    if(isVue){ const m=line.slice(i).match(/^([:@#]?[A-Za-z][\w.:-]*)(?==)/); if(m && /\s/.test(line[i-1]||' ')){ out+='<span class="at">'+esc(m[0])+'</span>'; i+=m[0].length; continue; } }
+    let m=line.slice(i).match(/^\d[\d_]*(\.\d+)?/); if(m && !/[\w$]/.test(line[i-1]||'')){ out+='<span class="num">'+m[0]+'</span>'; i+=m[0].length; continue; }
+    m=line.slice(i).match(/^[$A-Za-z_][\w$]*/);
+    if(m){ const w=m[0], after=line.slice(i+w.length), prev=line.slice(0,i);
+      if(KW.has(w)) out+='<span class="kw">'+w+'</span>';
+      else if(/^\s*\(/.test(after) || (/^\s*</.test(after)&&/^[A-Z]/.test(w))) out+='<span class="fn">'+w+'</span>';
+      else if(/^\s*:(?!:)/.test(after) && !/\?\s*$/.test(prev)) out+='<span class="pr">'+w+'</span>';
+      else if(/^[A-Z]/.test(w)) out+='<span class="ty">'+w+'</span>';
+      else if(/\.\s*$/.test(prev)) out+='<span class="pr">'+w+'</span>';
+      else out+=w; i+=w.length; continue; }
+    if(/[{}()\[\].,;:=<>+\-*\/!?&|]/.test(ch)){ out+='<span class="pun">'+esc(ch)+'</span>'; i++; continue; }
+    out+=esc(ch); i++;
+  }
+  return out;
+}
+function parseRanges(spec){ const s=new Set(); if(!spec) return s; spec.split(',').forEach(p=>{ const [a,b]=p.split('-').map(Number); if(b) for(let k=a;k<=b;k++) s.add(k); else s.add(a); }); return s; }
+/* code blocks : un ou plusieurs x-code (onglets), zoom en overlay */
+function renderCode(el, sources, active){
+  const many=sources.length>1;
+  const left=many
+    ?`<div class="tabs">${sources.map((s,i)=>`<button class="tab${i===active?' on':''}" data-i="${i}"><span class="i">${i+1}</span>${esc(s.path||'fichier '+(i+1))}</button>`).join('')}</div>`
+    :`<span class="path">${esc(sources[0].path||'')}</span>`;
+  const zoomed=el.closest('#zoom');
+  el.innerHTML=`<header>${left}<span class="hr"><span class="lang">${sources[active].lang}</span><button class="zoom" title="${zoomed?'Fermer (Esc)':'Agrandir'}">${zoomed?'✕':'⤢'}</button></span></header>`
+    +sources.map((s,i)=>`<pre class="${i===active?'on':''}">${s.html}</pre>`).join('');
+  el._sources=sources; el._active=active;
+}
+document.querySelectorAll('.code').forEach(el=>{
+  const srcs=[...el.querySelectorAll('script[type="text/x-code"]')]; if(!srcs.length) return;
+  const sources=srcs.map(src=>{
+    const text=src.textContent.replace(/<\\\/script/g,'<'+'/script').replace(/^\n+|\s+$/g,'');
+    const lang=src.dataset.lang||el.dataset.lang||'ts', hl=parseRanges(src.dataset.hl||(srcs.length===1?el.dataset.hl:''));
+    const html=text.split('\n').map((l,k)=>`<span class="l${hl.has(k+1)?' hl':''}">${hlLine(l,lang)||' '}</span>`).join('');
+    return {path:src.dataset.path||(srcs.length===1?el.dataset.path:''), lang, html};
+  });
+  srcs.forEach(s=>s.remove());
+  renderCode(el, sources, 0);
+});
+const zoom=document.createElement('div'); zoom.id='zoom'; zoom.innerHTML='<div class="code"></div><div class="hint">Esc · clic à côté pour fermer</div>'; document.getElementById('stage').appendChild(zoom);
+function openZoom(el){ const z=zoom.querySelector('.code'); z.className='code'; renderCode(z, el._sources, el._active); zoom.classList.add('on'); }
+function closeZoom(){ zoom.classList.remove('on'); }
+document.addEventListener('click',e=>{
+  const tab=e.target.closest('.code .tab');
+  if(tab){ e.stopPropagation(); const el=tab.closest('.code'); const i=+tab.dataset.i; el._active=i;
+    el.querySelectorAll('.tab').forEach((t,k)=>t.classList.toggle('on',k===i)); el.querySelectorAll(':scope>pre').forEach((p,k)=>p.classList.toggle('on',k===i));
+    el.querySelector('.lang').textContent=el._sources[i].lang; return; }
+  if(e.target.closest('#zoom .code .zoom')){ e.stopPropagation(); closeZoom(); return; }
+  if(e.target.closest('#zoom .code')) { e.stopPropagation(); return; }
+  if(e.target.closest('#zoom')){ e.stopPropagation(); closeZoom(); return; }
+  const hd=e.target.closest('.code header');
+  if(hd){ e.stopPropagation(); openZoom(hd.closest('.code')); }
+},true);
+/* deck */
+const slides=[...document.querySelectorAll('.slide')]; let cur=0;
+slides.forEach((s,i)=>{ if(!s.classList.contains('hero')){ const body=document.createElement('div'); body.className='body'; [...s.children].filter(c=>!c.matches('.kick,h2,.focus')).forEach(c=>body.appendChild(c)); s.appendChild(body); }
+  const sec=s.dataset.sec||''; s.insertAdjacentHTML('beforeend',`<div class="foot"><span>${sec?'<b>'+sec+'</b> · ':''}Nouveautés de la stack front</span><span>${i+1} / ${slides.length}</span></div>`); });
+function fit(){ const k=Math.min(innerWidth/1600, innerHeight/900); const W=Math.round(innerWidth/k), H=Math.round(innerHeight/k); const st=document.getElementById('stage'); st.style.width=W+'px'; st.style.height=H+'px'; st.style.margin=`${-H/2}px 0 0 ${-W/2}px`; st.style.transform=`scale(${k})`; }
+addEventListener('resize',fit); fit();
+function show(i,fromHash){ i=Math.max(0,Math.min(slides.length-1,i)); slides[cur].classList.remove('active'); cur=i; slides[cur].classList.add('active'); document.querySelector('#progress i').style.width=((cur+1)/slides.length*100)+'%'; if(!fromHash) history.replaceState(null,'','#'+(cur+1)); }
+addEventListener('keydown',e=>{ const ov=document.getElementById('overview');
+  if(zoom.classList.contains('on')){ if(e.key==='Escape'){ e.preventDefault(); closeZoom(); } return; }
+  if(['ArrowRight','PageDown',' ','Enter'].includes(e.key)){ e.preventDefault(); show(cur+1); }
+  else if(['ArrowLeft','PageUp','Backspace'].includes(e.key)){ e.preventDefault(); show(cur-1); }
+  else if(e.key==='Home') show(0); else if(e.key==='End') show(slides.length-1);
+  else if(e.key==='f'||e.key==='F'){ document.fullscreenElement?document.exitFullscreen():document.documentElement.requestFullscreen(); }
+  else if(e.key==='o'||e.key==='O'){ ov.classList.toggle('on'); } else if(e.key==='Escape') ov.classList.remove('on'); });
+addEventListener('hashchange',()=>show((parseInt(location.hash.slice(1))||1)-1,true));
+document.getElementById('stage').addEventListener('click',e=>{ if(e.target.closest('a,button,input,select,.code,#zoom')) return; const r=document.getElementById('viewport').getBoundingClientRect(); (e.clientX-r.left)>r.width*0.7?show(cur+1):((e.clientX-r.left)<r.width*0.15?show(cur-1):null); });
+const ovGrid=document.getElementById('ov-grid');
+slides.forEach((s,i)=>{ const t=(s.querySelector('h1,h2')?.textContent||'').trim(); const d=document.createElement('div'); d.className='th'; d.innerHTML=`<span class="i">${i+1} · ${s.dataset.sec||'—'}</span><span class="t">${esc(t)}</span>`; d.onclick=()=>{document.getElementById('overview').classList.remove('on');show(i)}; ovGrid.appendChild(d); });
+show((parseInt(location.hash.slice(1))||1)-1,true);
+</script>
+</html>
