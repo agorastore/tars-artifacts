@@ -1251,11 +1251,11 @@ const theme = computed(() => resolveMarketSeoTheme(props.themeKey).og)
         <text x="40" y="82" font-weight="700" fill="#1E56D6" class="mono" font-size="17">defineEntityLoader</text>
         <text x="40" y="108" fill="#0C1526" font-weight="600">quoi charger, à quel moment</text>
         <text x="40" y="134" fill="#55617A" class="mono" font-size="12.5">essential.query · background.count · deferred.table</text>
-        <text x="40" y="162" fill="#8A93A8" font-size="12" class="mono">entities/organisations/detail/composables/useOrganisationDetail.ts</text>
+        <text x="40" y="162" fill="#8A93A8" font-size="12" class="mono">entities/organisations/detail/loader.ts</text>
         <rect x="20" y="196" width="420" height="130" rx="14" fill="#EBF1FF" stroke="#C6D7FA"/>
         <text x="40" y="228" font-weight="700" fill="#1E56D6" class="mono" font-size="17">defineEntityDetails</text>
-        <text x="40" y="254" fill="#0C1526" font-weight="600">la structure : groupes → sections</text>
-        <text x="40" y="280" fill="#55617A" class="mono" font-size="12.5">form · table · editor · slot · stats · notices</text>
+        <text x="40" y="254" fill="#0C1526" font-weight="600">la structure : en-tête, groupes → sections</text>
+        <text x="40" y="280" fill="#55617A" class="mono" font-size="12.5">header · form · table · editor · slot · stats · notices</text>
         <text x="40" y="308" fill="#8A93A8" font-size="12" class="mono">components/entities/organisations/detail/OrganisationDetails.vue</text>
         <rect x="20" y="342" width="420" height="130" rx="14" fill="#FFF3DE" stroke="#F7DDB0"/>
         <text x="40" y="374" font-weight="700" fill="#D98F1F" class="mono" font-size="17">submit(formData) → boolean</text>
@@ -1327,7 +1327,7 @@ const theme = computed(() => resolveMarketSeoTheme(props.themeKey).og)
   <h2><code>defineEntityLoader</code> — chaque ressource nourrit une partie de la fiche.</h2>
   <p class="focus">Un composable par entité. Trois étages, quatre méthodes. À droite : où chaque déclaration atterrit.</p>
   <div class="row" style="align-items:center">
-    <div data-hl="5,11,16,20" class="code sm" style="width:900px" data-path="entities/organisations/detail/composables/useOrganisationDetail.ts (simplifié)" data-lang="ts"><script type="text/x-code">export function useOrganisationDetail(params: { organisationShortId: string }) {
+    <div data-hl="5,11,16,20" class="code sm" style="width:900px" data-path="entities/organisations/detail/loader.ts · useOrganisationDetail (simplifié)" data-lang="ts"><script type="text/x-code">export function useOrganisationDetail(params: { organisationShortId: string }) {
   return defineEntityLoader(({ essential, background, deferred }) => {
 
     // ① en-tête + formulaires
@@ -1404,15 +1404,86 @@ const theme = computed(() => resolveMarketSeoTheme(props.themeKey).og)
   <div class="facts"><span class="fact blue">.query · .count · .table · .resource sur chaque étage</span><span class="fact">retour : ready · error · refreshing · refresh({ resources? })</span></div>
 </section>
 
+<!-- 3.4c prefetch dérivé -->
+<section class="slide" data-sec="Admin">
+  <div class="kick"><span class="n">3.4</span>partie 1 · le loader · prefetch</div>
+  <h2>Le loader est aussi <em>le plan de prefetch</em>.</h2>
+  <p class="focus">Survoler une ligne de la liste charge l’essentiel de la fiche — dérivé du loader, jamais réécrit. Six lignes par page, une fois.</p>
+  <div class="row" style="align-items:center">
+    <div class="card diagram" style="width:820px">
+      <svg viewBox="0 0 640 400" aria-label="Du survol à la fiche prête">
+        <defs><marker id="pf-ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0 0L10 5 0 10z" fill="#1E56D6"/></marker></defs>
+        <g font-size="13">
+          <rect x="20" y="20" width="310" height="70" rx="12" fill="#fff" stroke="#D5DBE7"/>
+          <text x="40" y="48" font-weight="700" fill="#0C1526" font-size="14">survol · focus d’une ligne de la liste</text>
+          <text x="40" y="70" fill="#55617A" font-size="12">&lt;NuxtLink&gt; · prefetchOn: interaction</text>
+          <path d="M175 90v28" stroke="#1E56D6" stroke-width="1.5" marker-end="url(#pf-ar)"/>
+          <rect x="20" y="120" width="310" height="70" rx="12" fill="#EBF1FF" stroke="#C6D7FA"/>
+          <text x="40" y="146" font-weight="700" fill="#1E56D6" font-size="12" class="mono">defineQueryPrefetch('organisations-id', …)</text>
+          <text x="40" y="170" fill="#55617A" font-size="12">le plan déclaré par la page destination</text>
+          <path d="M175 190v28" stroke="#1E56D6" stroke-width="1.5" marker-end="url(#pf-ar)"/>
+          <rect x="20" y="220" width="330" height="160" rx="12" fill="#16294F"/>
+          <text x="40" y="244" font-weight="700" fill="#fff" font-size="12" class="mono">prefetchEntityLoader(useOrganisationDetail)</text>
+          <text x="40" y="266" fill="#B8C6E4" font-size="12">le loader tourne en mode capture :</text>
+          <text x="40" y="298" fill="#6BD3A0" font-size="12.5" class="mono">✓ essential.query → étages inférés</text>
+          <text x="40" y="322" fill="#8FA3CC" font-size="12.5" class="mono">– background · count    dormants</text>
+          <text x="40" y="346" fill="#8FA3CC" font-size="12.5" class="mono">– deferred · table      dormants</text>
+          <text x="40" y="370" fill="#FDBF62" font-size="11.5">aucune requête déclarée deux fois</text>
+          <path d="M350 300h16" stroke="#1E56D6" stroke-width="1.5" marker-end="url(#pf-ar)"/>
+          <rect x="368" y="220" width="252" height="160" rx="12" fill="#fff" stroke="#D5DBE7"/>
+          <text x="388" y="248" font-weight="700" fill="#0C1526" font-size="14">au clic : fiche prête</text>
+          <text x="388" y="274" fill="#55617A" font-size="12">mêmes clés ['api', …]</text>
+          <text x="388" y="296" fill="#55617A" font-size="12">identité, hiérarchie, boutiques</text>
+          <text x="388" y="318" fill="#55617A" font-size="12">déjà en cache → « prête » immédiat</text>
+          <text x="388" y="348" fill="#189A54" font-size="12" font-weight="600">rail, compteurs et tables</text>
+          <text x="388" y="368" fill="#189A54" font-size="12" font-weight="600">suivent comme d’habitude</text>
+          <rect x="368" y="20" width="252" height="170" rx="12" fill="#FFF3DE" stroke="#F7DDB0"/>
+          <text x="388" y="48" font-weight="700" fill="#D98F1F" font-size="13">étages inférés</text>
+          <text x="388" y="74" fill="#55617A" font-size="12">étage 1 · queries résolubles</text>
+          <text x="388" y="92" fill="#8A93A8" font-size="11" class="mono">organisation · shops · hierarchy</text>
+          <text x="388" y="120" fill="#55617A" font-size="12">étage 2 · celles qui lisent</text>
+          <text x="388" y="138" fill="#55617A" font-size="12">une donnée de l’étage 1</text>
+          <text x="388" y="166" fill="#8A93A8" font-size="11.5">enabled: false → ignorée</text>
+        </g>
+      </svg>
+    </div>
+    <div class="col grow" style="gap:14px">
+      <div class="code">
+        <script type="text/x-code" data-path="pages/organisations/[id].vue · six lignes" data-lang="ts" data-hl="1-5">defineQueryPrefetch('organisations-id', ({ route }) =>
+  prefetchEntityLoader(useOrganisationDetail, {
+    organisationShortId: String(route.params.id),
+  }),
+)
+
+// idem : contracts · invoices · items · seances · users</script>
+        <script type="text/x-code" data-path="apps/admin-front/nuxt.config.ts" data-lang="ts" data-hl="4-5">experimental: {
+  defaults: {
+    nuxtLink: {
+      prefetchOn: { interaction: true, visibility: false },
+      // survol / focus, pas visibilité : une liste dense
+      // ne doit pas précharger cent fiches
+    },
+  },
+}</script>
+      </div>
+      <div class="cols2">
+        <div class="card feat" style="gap:6px"><h4><span class="ic">=</span>une seule source</h4><p>Le plan est le loader. Ajouter une query essentielle l’ajoute au prefetch.</p></div>
+        <div class="card feat" style="gap:6px"><h4><span class="ic">!</span>l’essentiel, pas tout</h4><p>Ce qui conditionne « prête ». Le reste garde ses étages à l’arrivée.</p></div>
+      </div>
+    </div>
+  </div>
+</section>
+
 <!-- 3.6 CONFIG -->
 <section class="slide" data-sec="Admin">
   <div class="kick"><span class="n">3.5</span>partie 2 · la configuration</div>
   <h2><code>defineEntityDetails</code> — des groupes, des sections, <em>quatre types</em>.</h2>
   <p class="focus">La config se lit comme le plan de la fiche. Chaque section a un type ; le shell sait rendre chacun.</p>
   <div class="row" style="align-items:center">
-    <div data-hl="8,14,24,29,33" class="code sm" style="width:820px" data-path="components/entities/organisations/detail/OrganisationDetails.vue (abrégé)" data-lang="ts"><script type="text/x-code">const details = defineEntityDetails({
+    <div data-hl="9,15,25,30,34" class="code sm" style="width:820px" data-path="components/entities/organisations/detail/OrganisationDetails.vue (abrégé)" data-lang="ts"><script type="text/x-code">const details = defineEntityDetails({
   entity: () => organisation.value,      // nullish → shell en chargement
   loader: () => organisationDetails,     // ready · refresh · error
+  header: { kind, reference, title, status, meta },   // → slide suivante
   groups: [
     {
       key: 'edition',
@@ -1461,32 +1532,84 @@ const theme = computed(() => resolveMarketSeoTheme(props.themeKey).og)
   </div>
 </section>
 
+<!-- 3.5b EN-TÊTE -->
+<section class="slide" data-sec="Admin">
+  <div class="kick"><span class="n">3.5</span>partie 2 · l’en-tête</div>
+  <h2>L’en-tête est <em>de la donnée</em>, pas du template.</h2>
+  <p class="focus">Nature, référence, titre, statut, métadonnées : cinq clés dans la config. Le shell les rend, gère le chargement, les liens et les valeurs absentes.</p>
+  <div class="row" style="align-items:center">
+    <div class="col" style="width:680px;gap:16px">
+      <div class="hdmock">
+        <div class="top"><span class="kind">Organisation <i>·</i> ORG-7F3K2</span><span class="mk" style="right:-14px;top:-14px">1</span></div>
+        <div class="ttl">Ateliers Roux SAS <i class="st">ACTIVE</i><span class="mk" style="left:-38px;top:2px">2</span></div>
+        <div class="meta">
+          <div><label>Type</label><span>Entreprise · vendeur</span></div>
+          <div><label>Organisation parente</label><span class="lnk">▣ Groupe Roux Industrie ↗</span></div>
+          <div><label>Boutique</label><span>Agorastore</span></div>
+          <div><label>E-mail</label><span>contact@ateliers-roux.fr</span></div>
+          <span class="mk" style="right:-14px;bottom:-14px">3</span>
+        </div>
+        <div class="acts"><i>Rafraîchir</i><i>Actions ▾</i></div>
+      </div>
+      <div class="legend" style="grid-template-columns:1fr 1fr 1fr;gap:10px">
+        <div><span class="mk">1</span><div><b>kind · reference</b>la nature et l’identifiant, en petit</div></div>
+        <div><span class="mk">2</span><div><b>title · status</b>un <code>VNodeChild</code> chacun — le statut réutilise le rendu de la liste</div></div>
+        <div><span class="mk">3</span><div><b>meta[]</b>label, valeur, icône, <code>to</code> et <code>condition</code> ; une valeur <code>undefined</code> n’apparaît pas</div></div>
+      </div>
+    </div>
+    <div class="code sm grow" data-path="OrganisationDetails.vue · defineEntityDetails({ header })" data-lang="ts" data-hl="2-5,11,17,20"><script type="text/x-code">header: {
+  kind: () => $i18n.t('labels.organisation'),
+  reference: () => organisation.value?.organisationShortId,
+  title: () => organisation.value?.name,
+  status: () => renderOrganisationStatus(organisation.value.status),
+  meta: [
+    {
+      key: 'type',
+      label: () => $i18n.t('…columns.type'),
+      value: () => $i18n.t(`values.compositeOrganisationType.${compositeType.value}`),
+    },
+    {
+      key: 'parentOrganisation',
+      label: () => $i18n.t('…columns.parentOrganisation'),
+      icon: 'heroicons:building-office-2',
+      value: () => parentNode.value?.name,        // undefined → masqué
+      to: () => ({ name: 'organisations-id', params: { id: parentId.value } }),
+    },
+    { key: 'mainShop', label: () => $i18n.t('labels.shop'),  value: () => mainShop.value?.name },
+    { key: 'email',    label: () => $i18n.t('labels.email'), value: () => organisation.value?.email },
+  ],
+},</script></div>
+  </div>
+</section>
+
 <!-- 3.7 TEMPLATE -->
 <section class="slide" data-sec="Admin">
   <div class="kick"><span class="n">3.5</span>partie 2 · le template</div>
   <h2>Le shell, plus un slot par section <em>sur mesure</em>.</h2>
-  <p class="focus">Le template ne contient que l’identité de l’en-tête et les sections qu’aucun type générique ne couvre.</p>
+  <p class="focus">Le template ne contient que les sections qu’aucun type générique ne couvre — ici une table embarquée qui a besoin de son bouton.</p>
   <div class="row" style="align-items:center">
-    <div class="code" style="width:900px" data-path="OrganisationDetails.vue · template" data-lang="vue" data-hl="1,9"><script type="text/x-code"><EntityDetailShell :details="details" :actions="headerActions">
-  <template #title>{{ organisation?.name }}</template>
-  <template #meta>
-    <component :is="() => renderOrganisationStatus(organisation.status)" />
-    <span>{{ organisation.organisationShortId }}</span>
-  </template>
+    <div class="code" style="width:900px" data-path="OrganisationDetails.vue · template" data-lang="vue" data-hl="1,4"><script type="text/x-code"><EntityDetailShell :details="details" :actions="headerActions">
+  <!-- l’en-tête vient de la config · rien à rendre ici -->
 
   <!-- la clé du slot = la clé de la section -->
-  <template #documents="{ section }">
-    <OrganisationDocumentsSection
-      :organisation
-      :documents="organisationDetails.documents.table"
-      :title="section.label" />
+  <template #users="{ section }">
+    <DataList
+      embed
+      :table="organisationDetails.users.table"
+      :title="section.label"
+      :full-view-to="{ name: 'users', query: { 'filters.organisations': JSON.stringify([organisationShortId]) } }"
+    >
+      <template #actions>
+        <NButton size="small" type="primary" @click="addPerson">{{ $t('actions.add') }}</NButton>
+      </template>
+    </DataList>
   </template>
 </EntityDetailShell></script></div>
     <div class="card api tight grow">
       <div class="hd">props &amp; slots du shell</div>
       <div class="r"><div class="k">:details</div><div class="d">la config <code>defineEntityDetails</code></div></div>
       <div class="r"><div class="k">:actions</div><div class="d">menu d’en-tête (<code>MenuOption[]</code>) ; <i>rafraîchir</i> est ajouté par le shell</div></div>
-      <div class="r"><div class="k">#title · #meta</div><div class="d">identité de l’entité, rendus dès <code>ready</code></div></div>
+      <div class="r"><div class="k">header <small>dans la config</small></div><div class="d">identité de l’entité — <code>kind · reference · title · status · meta[]</code>, rendue dès <code>ready</code></div></div>
       <div class="r"><div class="k">#actions <small>{ refresh, refreshing, submitting }</small></div><div class="d">actions d’en-tête personnalisées</div></div>
       <div class="r"><div class="k">#&lt;key&gt; <small>{ section, goTo }</small></div><div class="d">un slot par section sans type — <code>goTo('items')</code> pour naviguer</div></div>
       <div class="hd">au niveau de la config</div>
@@ -1738,9 +1861,9 @@ const editor = useEntityDetailEditor({ dirty, reset: cancel, submit: save })
   <h2>Ajouter une fiche, ou une section.</h2>
   <p class="focus">Quatre fichiers, dans cet ordre.</p>
   <div class="cols4 eq">
-    <div class="card step"><div class="n">1</div><h4>Le loader</h4><p><code>entities/&lt;x&gt;/detail/composables/use&lt;X&gt;Detail.ts</code></p><p>entité → <code>essential</code> · compteurs → <code>background</code> · tables → <code>deferred</code> · fonctions <code>submit</code></p></div>
+    <div class="card step"><div class="n">1</div><h4>Le loader</h4><p><code>entities/&lt;x&gt;/detail/loader.ts</code></p><p>entité → <code>essential</code> · compteurs → <code>background</code> · tables → <code>deferred</code> · fonctions <code>submit</code></p></div>
     <div class="card step"><div class="n">2</div><h4>Les schémas</h4><p><code>entities/&lt;x&gt;/detail/schema.tsx</code></p><p>formulaires de section · pour les relations : le <code>&lt;y&gt;TableSchema({ &lt;x&gt;ShortId })</code> existant + son <code>embed</code></p></div>
-    <div class="card step"><div class="n">3</div><h4>Config + shell</h4><p><code>components/entities/&lt;x&gt;/detail/&lt;X&gt;Details.vue</code></p><p><code>defineEntityDetails</code> · <code>&lt;EntityDetailShell&gt;</code> · <code>#title</code> · <code>#meta</code> · un slot par section sur mesure</p></div>
+    <div class="card step"><div class="n">3</div><h4>Config + shell</h4><p><code>components/entities/&lt;x&gt;/detail/&lt;X&gt;Details.vue</code></p><p><code>defineEntityDetails</code> (<code>header</code> · groupes) · <code>&lt;EntityDetailShell&gt;</code> · un slot par section sur mesure</p></div>
     <div class="card step"><div class="n">4</div><h4>La route</h4><p><code>pages/&lt;x&gt;/[id].vue</code></p><p><code>definePageMeta</code> — accès, fil d’Ariane via <code>ctx.detailLabel</code> — et le composant. Rien d’autre.</p></div>
   </div>
   <div class="facts"><span class="fact">déjà sur ce modèle : contrats · factures · items · organisations · séances · utilisateurs</span><span class="fact blue">tests montés : packages/shared-ui/test/entity-details</span></div>
@@ -1764,11 +1887,11 @@ const editor = useEntityDetailEditor({ dirty, reset: cancel, submit: save })
         <div><span class="g">    ├── </span><span class="f new">schema.tsx</span><span class="c">sections éditables</span></div>
         <div><span class="g">    ├── </span><span class="f new">action.ts</span><span class="c">actions de la fiche</span></div>
         <div><span class="g">    ├── </span><span class="f new">render.tsx</span><span class="c">adaptateurs de champs custom</span></div>
-        <div><span class="g">    └── </span><span class="d new">composables/</span><span class="c">le loader étagé</span></div>
+        <div><span class="g">    └── </span><span class="f new">loader.ts</span><span class="c">le loader étagé — et le plan de prefetch</span></div>
       </div>
     </div>
     <div class="col grow" style="gap:14px">
-      <div class="card feat" style="gap:8px"><h4><span class="ic">?</span>« où est-ce que ça va ? »</h4><p>Une colonne → <code>render.tsx</code>. Un filtre → <code>filter.ts</code>. Une action de ligne → <code>action.ts</code>. Une section de fiche → <code>detail/schema.tsx</code>. Un chargement → <code>detail/composables</code>.</p></div>
+      <div class="card feat" style="gap:8px"><h4><span class="ic">?</span>« où est-ce que ça va ? »</h4><p>Une colonne → <code>render.tsx</code>. Un filtre → <code>filter.ts</code>. Une action de ligne → <code>action.ts</code>. Une section de fiche → <code>detail/schema.tsx</code>. Un chargement → <code>detail/loader.ts</code>.</p></div>
       <div class="card feat" style="gap:8px"><h4><span class="ic">↺</span>corriger le propriétaire</h4><p>Un comportement faux dans une table embarquée se corrige dans le schéma canonique — la projection suit. Idem pour un champ distant : dans <code>shared-business/entities/…/fields.tsx</code>.</p></div>
       <div class="card feat" style="gap:8px"><h4><span class="ic">28</span>dossiers d’entité en admin</h4><p>Le même plan pour chacun. Les sous-dossiers (<code>create/</code>, <code>merge/</code>, <code>users/</code>…) tiennent les écrans satellites.</p></div>
     </div>
@@ -1947,6 +2070,16 @@ const selected = selection.selectedKeys
   </div>
 </section>
 <style>
+.hdmock{position:relative;border:1px solid var(--line-2);border-radius:14px;background:#fff;box-shadow:var(--sh);padding:18px 22px;display:flex;flex-direction:column;gap:10px;font-size:13px}
+.hdmock .top{position:relative;display:flex;justify-content:space-between}
+.hdmock .kind{font-family:var(--mono);font-size:11.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--faint)}.hdmock .kind i{font-style:normal;margin:0 6px}
+.hdmock .ttl{position:relative;font-family:var(--disp);font-weight:700;font-size:24px;letter-spacing:-.02em;display:flex;align-items:center;gap:12px}
+.hdmock .st{font-style:normal;font-family:var(--mono);font-size:10px;padding:3px 8px;border-radius:5px;background:var(--green-soft);color:var(--green);letter-spacing:.06em}
+.hdmock .meta{position:relative;display:grid;grid-template-columns:1fr 1fr;gap:10px 18px;padding:12px 14px;border:1px solid var(--line);border-radius:10px;background:#FAFBFD}
+.hdmock .meta div{display:flex;flex-direction:column;gap:2px}
+.hdmock .meta label{font-size:10.5px;text-transform:uppercase;letter-spacing:.06em;color:var(--faint)}
+.hdmock .meta span{font-size:13px;color:var(--ink);font-weight:500}.hdmock .meta .lnk{color:var(--blue)}
+.hdmock .acts{position:absolute;right:22px;top:44px;display:flex;gap:6px}.hdmock .acts i{font-style:normal;font-size:11px;border:1px solid var(--line-2);border-radius:6px;padding:4px 9px;color:var(--sub)}
 .selmock,.treemock,.dlmock{position:relative;font-size:13px;color:var(--ink)}
 .selmock .lbl,.treemock .lbl{font-size:12px;font-weight:600;color:var(--sub);margin-bottom:6px}.selmock .lbl em{color:#D64545;font-style:normal}
 .selmock .inp{position:relative;display:flex;align-items:center;gap:8px;border:1.5px solid var(--blue);border-radius:8px;padding:7px 10px;background:#fff;box-shadow:0 0 0 3px #DCE7FF}
